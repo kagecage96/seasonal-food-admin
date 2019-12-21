@@ -28,7 +28,8 @@
     ** Plugins to load before mounting the App
     */
     plugins: [
-        '~/plugins/firebase'
+        '~/plugins/firebase',
+        '~/plugins/element-ui',
     ],
     /*
     ** Nuxt.js dev-modules
@@ -41,7 +42,8 @@
             '@nuxtjs/axios',
             '@nuxtjs/pwa',
             '@nuxtjs/dotenv',
-        ],
+            '@nuxtjs/style-resources',
+    ],
     /*
     ** Axios module configuration
     ** See https://axios.nuxtjs.org/options
@@ -57,5 +59,13 @@
         */
         extend (config, ctx) {
         }
-    }
+    },
+    styleResources: {
+        scss: [
+            '~/assets/common.scss',
+        ],
+    },
+    css: [
+        'element-ui/lib/theme-chalk/index.css'
+    ]
 }

@@ -1,0 +1,12 @@
+textarea.el-textarea__inner, input.el-input__inner {
+    color: #28292b;
+}
+
+.el-alert--success.is-dark {
+    position: fixed;
+    z-index: 100;
+    max-width: 800px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+}
