@@ -13,28 +13,29 @@
             ingredient-profile(:ingredient="ingredientData" @update="updateProfile")
         div.Ingredients_ArticleWrapper
             div.Ingredients_ArticleLabel
-                span.Ingredients_ArticleLabelText Article_jp
-                el-button(type="primary" style="height: 40px;" @click="showCreateModal('jp')") Create
+                span.Ingredients_ArticleLabelText Article_japanese
+                el-button(type="primary" style="height: 40px;" @click="showCreateModal('japanese')") Create
             div.Ingredients_ArticleContainer
                 div(v-if="articleJpList.length == 0") Nothing
-                article-card(v-for="article in articleJpList"
-                            :key="article.id"
-                            lang="jp"
+                article-card(v-for="(article, index) in articleJpList"
+                            :key="index"
+                            lang="japanese"
                             :article="article"
                             @click.native="showEditModal(article)"
                             class="Ingredients_ArticleCard")
         div.Ingredients_ArticleWrapper
             div.Ingredients_ArticleLabel
-                span.Ingredients_ArticleLabelText Article_en
-                el-button(type="primary" style="height: 40px;" @click="showCreateModal('en')") Create
+                span.Ingredients_ArticleLabelText Article_english
+                el-button(type="primary" style="height: 40px;" @click="showCreateModal('english')") Create
             div.Ingredients_ArticleContainer
                 div(v-if="articleEnList.length == 0") Nothing
-                article-card(v-for="article in articleEnList"
-                            :key="article.id" lang="en"
+                article-card(v-for="(article, index) in articleEnList"
+                            :key="index"
+                            lang="english"
                             :article="article"
                             @click.native="showEditModal(article)"
                             class="Ingredients_ArticleCard")
-        article-create-modal(v-show="isActiveCreateModal" :lang="modalType" @close="closeCreateModal")
+        article-create-modal(v-show="isActiveCreateModal" :lang="modalType" @create="createArticle" @close="closeCreateModal")
         article-edit-modal(v-show="isActiveEditModal" :article="selectedArticle" :lang="modalType" @close="closeEditModal")
 </template>
 
@@ -54,7 +55,7 @@ export default {
             isActiveCreateModal: false,
             isActiveEditModal: false,
             selectedArticle: {},
-            modalType: 'jp',
+            modalType: 'japanese',
             isSuccess: false // Where firestore action is success
         }
     },
@@ -67,14 +68,14 @@ export default {
     async asyncData ({ store, params }) {
         // Get this ingredient data
         let ingredient = {}
-        let documentId = 0
+        let ingredientId = 0
         await db.collection('Ingredients')
             .doc(params.id)
             .get()
             .then(snapshot => {
                 if(snapshot.exists) {
                     ingredient = snapshot.data()
-                    documentId = snapshot.id
+                    ingredientId = snapshot.id
                 }
             })
         // Get article List of this ingredient
@@ -105,7 +106,7 @@ export default {
             })
         });
         return {
-            documentId: documentId,
+            ingredientId: ingredientId,
             ingredientData: ingredient,
             articleJpList: articleJpList,
             articleEnList: articleEnList
@@ -114,7 +115,7 @@ export default {
     methods: {
         updateProfile(profile) {
             this.loadingToClass('IngredientProfile_UpdataButton', '#ffffff80')
-            db.collection("Ingredients").doc(this.documentId).update(profile)
+            db.collection("Ingredients").doc(this.ingredientId).update(profile)
             .then(() => {
                 this.ingredientData = profile
                 this.isSuccess = true
@@ -123,13 +124,59 @@ export default {
                 }, 3500)
                 this.loadingStop()
             })
-            .catch(err => {
-                alert(err)
-                console.log(err)
+            .catch(error => {
+                alert(error)
+                console.log(error)
             })
         },
-        updateArticle(ingredient) {
+        updateArticle(article) {
+            console.log(article)
+            // db.collection('Articles').doc(this.ingredientId).update({
+            //     'articles_ids': articles_ids
+            // }).then(()=> {
+            //     this.isSuccess = true
+            //     setTimeout(() => {
+            //         this.isSuccess= false
+            //     }, 3500)
+            //     this.loadingStop()
+            //     this.closeCreateModal()
+            //     window.location.reload(true)
+            // })
             // this.loadingToClass('IngredientProfile_UpdataButton', '#ffffff80')
+        },
+        createArticle(article) {
+            console.log(article)
+            let articleProfile = article.profile
+            articleProfile['ingredient_id'] = this.ingredientId
+
+            this.loadingToClass('ArticleCreateModal_SubmitButton', '#ffffff80')
+
+            db.collection("Articles").add(articleProfile)
+            .then((docRef) => {
+                let articles_ids = this.ingredientData.articles_ids
+                articles_ids.push(docRef.id)
+
+                article.sub_categories.forEach(category => {
+                    db.collection(`Articles/${docRef.id}/sub_categories`).add(category)
+                })
+
+                db.collection('Ingredients').doc(this.ingredientId).update({
+                    'articles_ids': articles_ids
+                }).then(()=> {
+                    this.isSuccess = true
+                    setTimeout(() => {
+                        this.isSuccess= false
+                    }, 3500)
+                    this.loadingStop()
+                    this.closeCreateModal()
+                    window.location.reload(true)
+                })
+            })
+            .catch((error) => {
+                alert(error)
+                console.error("Error adding document: ", error);
+            });
+
         },
         goTop() {
             this.$router.push('/')

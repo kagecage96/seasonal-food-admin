@@ -17,7 +17,7 @@
                                 class="ArticleCreateModal_SubCategory")
                 div.ArticleCreateModal_AddSubCategoryButton
                     el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
-            el-button(type="primary" @click="createArticle") Create
+            el-button(type="primary" class="ArticleCreateModal_SubmitButton" @click.self="createArticle" :disabled="articleTitle.length == 0") Create
 </template>
 
 <script>
@@ -39,16 +39,34 @@ export default {
         lang: {
             type: String,
             required: true,
-            default: 'jp'
+            default: 'japanese'
         }
     },
     components: {
         SubCategory
     },
     methods: {
-        closeModal() {
-            this.$emit('close')
-            this.initSubCategory()
+        createArticle() {
+            const article = {
+                profile: {
+                    language: this.lang,
+                    title: this.articleTitle,
+                    ingredient_id: ""
+                },
+                sub_categories: this.categoryFilter()
+            }
+            this.$emit('create', article)
+        },
+        categoryFilter() {
+            // Return valid sub-category (has title and no-empty content)
+            this.categories = this.categories.filter(category => {
+                if(category.title.length == 0) return false
+                category.contents = category.contents.filter(content => {
+                    if(content) return content
+                })
+                return category
+            })
+            return this.categories
         },
         initSubCategory() {
             this.articleTitle = '',
@@ -68,12 +86,13 @@ export default {
                 }
             this.categories.push(categoryInit)
         },
-        createArticle() {
-            console.log(this.$refs.ArticleForm)
-        },
         addContent(index) {
             this.categories[index].contents.push('')
-        }
+        },
+        closeModal() {
+            this.$emit('close')
+            this.initSubCategory()
+        },
     }
 }
 </script>
@@ -101,6 +120,8 @@ export default {
         margin: auto;
         padding: 50px 80px;
         overflow: scroll;
+        display: flex;
+        flex-direction: column;
     }
     &_SubCategory {
         &:nth-last-of-type(n+2) {
@@ -109,6 +130,9 @@ export default {
     }
     &_FormItemContainer {
         margin-bottom: 20px;
+        &:last-of-type {
+            margin-bottom: 80px;
+        }
     }
     &_FormItemLabel {
         margin-bottom: 10px;
@@ -121,6 +145,9 @@ export default {
     }
     &_AddSubCategoryButton {
         text-align: center;
+    }
+    &_SubmitButton {
+        margin-top: auto;
     }
 }
 </style>
