@@ -105,7 +105,7 @@ export default {
             })
             .catch(err => {
                 console.log(err)
-                alert(err)
+                alert('Error! show error details on console.')
             })
         });
         return {
@@ -145,9 +145,9 @@ export default {
                     profile.image_url = url
                     this.updateProfile(profile)
                 });
-            }).catch(err => {
-                console.log(err)
-                alert('Error! show error context in console')
+            }).catch(error => {
+                console.log(error)
+                alert('Error! show error details on console.')
             })
         },
         updateArticle(article) {
@@ -174,7 +174,8 @@ export default {
             }).catch((error) => {
                 alert(error)
                 this.loadingStop()
-                console.error("Error uodating document: ", error);
+                console.log(error)
+                console.error('Error! show error details on console.');
             });
 
         },

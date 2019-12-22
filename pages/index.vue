@@ -67,6 +67,9 @@ export default {
                         ingredients.push(ingredient)
                     }
                 });
+            }).catch(error => {
+                console.log(error)
+                alert('Error! show error details on console.')
             })
             this.ingredients = ingredients
             this.filteredIngredients = ingredients.filter(ingredient => {
