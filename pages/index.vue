@@ -15,7 +15,7 @@
                     :label="value"
                     :value="value"
                 ) {{value}}
-            el-button(type="primary") 新規作成
+            el-button(type="primary" @click="createIngredient") 新規作成
         div.Top_Body
             div.Top_Count {{filteredIngredients.length}} results
             div.Top_CardList
@@ -74,6 +74,9 @@ export default {
             })
             this.loadingStop()
         },
+        async createIngredient() {
+
+        },
         sortIngredients() {
             this.filteredIngredients = this.ingredients.filter(ingredient => {
                 return ingredient.seasons[this.season] == true
@@ -111,7 +114,7 @@ export default {
     }
     &_Card {
         margin: 0 25px 25px;
-        width: 150px;
+        width: 15%;
         word-break: break-all;
         text-align: center;
     }

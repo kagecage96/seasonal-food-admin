@@ -1,7 +1,7 @@
 <template lang="pug">
     div.IngredientProfile
         div.IngredientProfile_Image
-            img(:src="newIngredient.image_url" width="300px" height="300px")
+            ingredient-image(:imageUrl="newIngredient.image_url" @change="updateImage")
         div.IngredientProfile_InfoContainer
             div.IngredientProfile_FormItem
                 div.IngredientProfile_FormLabel Name_jp
@@ -32,6 +32,7 @@
 </template>
 
 <script>
+import IngredientImage from '~/components/IngredientImage'
 import prefectures from '~/assets/prefectures.js'
 import loading from '~/assets/loading.js'
 
@@ -49,7 +50,11 @@ export default {
             newIngredient: {},
             selectedSeasons: [],
             isUpdated: false,
+            selectedImage: ''
         }
+    },
+    components:{
+        IngredientImage
     },
     mounted() {
         this.newIngredient = JSON.parse(JSON.stringify(this.ingredient))
@@ -72,7 +77,12 @@ export default {
     methods: {
         update() {
             this.isUpdated = false
-            this.$emit('update', this.newIngredient)
+            if(this.selectedImage) {
+                // Image is updated
+                this.$emit('updateWithImage', {profile: this.newIngredient, image: this.selectedImage})
+            }else{
+                this.$emit('update', this.newIngredient)
+            }
         },
         setSeasons(seasonNumbers) {
             seasonNumbers = seasonNumbers.map(season => {
@@ -82,6 +92,10 @@ export default {
                 return seasonNumbers.includes(num) ? true : false
             })
             this.newIngredient.seasons = seasons
+        },
+        updateImage(file) {
+            this.isUpdated = true
+            this.selectedImage = file
         }
     }
 }

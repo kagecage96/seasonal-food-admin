@@ -17,7 +17,7 @@
                                 class="ArticleEditModal_SubCategory")
                 div.ArticleEditModal_AddSubCategoryButton
                     el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
-            el-button(type="danger" @click="EditArticle") Update
+            el-button(type="danger" class="ArticleEditModal_SubmitButton" @click.self="editArticle") Update
 </template>
 
 <script>
@@ -28,6 +28,7 @@ export default {
             articleTitle: '',
             categories: [
                 {
+                    id: '',
                     index: 0,
                     title: '',
                     contents: ['']
@@ -39,7 +40,7 @@ export default {
         lang: {
             type: String,
             required: true,
-            default: 'jp'
+            default: 'japanese'
         },
         article: {
             type: Object,
@@ -56,23 +57,39 @@ export default {
         }
     },
     methods: {
-        closeModal() {
-            this.$emit('close')
+        editArticle() {
+            const article = {
+                id: this.article.id,
+                title: this.articleTitle,
+                sub_categories: this.categoryFilter()
+            }
+            this.$emit('update', article)
+        },
+        categoryFilter() {
+            // Return valid sub-category (has title and no-empty content)
+            this.categories = this.categories.filter(category => {
+                if(category.title.length == 0) return false
+                category.contents = category.contents.filter(content => {
+                    if(content) return content
+                })
+                return category
+            })
+            return this.categories
         },
         addSubCategory() {
             const categoryInit = {
-                    index: this.categories.length,
+                index: this.categories.length,
                     title: '',
                     contents: ['']
                 }
             this.categories.push(categoryInit)
         },
-        EditArticle() {
-            console.log(this.$refs.ArticleForm)
-        },
         addContent(index) {
             this.categories[index].contents.push('')
-        }
+        },
+        closeModal() {
+            this.$emit('close')
+        },
     }
 }
 </script>
@@ -100,6 +117,8 @@ export default {
         margin: auto;
         padding: 50px 80px;
         overflow: scroll;
+        display: flex;
+        flex-direction: column;
     }
     &_SubCategory {
         &:nth-last-of-type(n+2) {
@@ -108,6 +127,9 @@ export default {
     }
     &_FormItemContainer {
         margin-bottom: 20px;
+        &:last-of-type {
+            margin-bottom: 80px;
+        }
     }
     &_FormItemLabel {
         margin-bottom: 10px;
@@ -120,6 +142,9 @@ export default {
     }
     &_AddSubCategoryButton {
         text-align: center;
+    }
+    &_SubmitButton {
+        margin-top: auto;
     }
 }
 </style>

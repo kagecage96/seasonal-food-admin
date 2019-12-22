@@ -10,7 +10,7 @@
         )
         el-page-header(@back="goTop" title="Top" class="Ingredients_PageLink")
         div.Ingredients_InfoWrapper
-            ingredient-profile(:ingredient="ingredientData" @update="updateProfile")
+            ingredient-profile(:ingredient="ingredientData" @update="updateProfile" @updateWithImage="updateProfileWithImage")
         div.Ingredients_ArticleWrapper
             div.Ingredients_ArticleLabel
                 span.Ingredients_ArticleLabelText Article_japanese
@@ -36,11 +36,11 @@
                             @click.native="showEditModal(article)"
                             class="Ingredients_ArticleCard")
         article-create-modal(v-show="isActiveCreateModal" :lang="modalType" @create="createArticle" @close="closeCreateModal")
-        article-edit-modal(v-show="isActiveEditModal" :article="selectedArticle" :lang="modalType" @close="closeEditModal")
+        article-edit-modal(v-show="isActiveEditModal" :article="selectedArticle" :lang="modalType" @update="updateArticle" @close="closeEditModal")
 </template>
 
 <script>
-import { db } from '~/plugins/firebase.js'
+import { db, firebase } from '~/plugins/firebase.js'
 import IngredientProfile from '~/components/IngredientProfile.vue'
 import ArticleCard from '~/components/ArticleCard.vue'
 import ArticleCreateModal from '~/components/ArticleCreateModal.vue'
@@ -89,12 +89,15 @@ export default {
             .get()
             .then(snapshot => {
                 let article = snapshot.data()
+                article['id'] = article_id
                 article['content'] = []
                 db.collection(`Articles/${article_id}/sub_categories`)
                 .get()
-                .then(snapshot => {
-                    snapshot.forEach(function(doc) {
-                        article['content'].push(doc.data())
+                .then(snapshot_categories => {
+                    snapshot_categories.forEach(function(doc) {
+                        let content = doc.data()
+                        content['id'] = doc.id
+                        article['content'].push(content)
                     });
                 })
                 if(article.language == 'japanese') articleJpList.push(article)
@@ -129,20 +132,51 @@ export default {
                 console.log(error)
             })
         },
+        updateProfileWithImage(payload){
+            let profile = payload.profile
+            let image = payload.image
+            var storageRef = firebase.storage().ref();
+            let ref = storageRef.child(`ingredients/${profile.name}.jpg`)
+
+            ref.put(image)
+            .then((snapshot)=> {
+                console.log('Uploaded a blob or file!');
+                ref.getDownloadURL().then((url) => {
+                    profile.image_url = url
+                    this.updateProfile(profile)
+                });
+            }).catch(err => {
+                console.log(err)
+                alert('Error! show error context in console')
+            })
+        },
         updateArticle(article) {
-            console.log(article)
-            // db.collection('Articles').doc(this.ingredientId).update({
-            //     'articles_ids': articles_ids
-            // }).then(()=> {
-            //     this.isSuccess = true
-            //     setTimeout(() => {
-            //         this.isSuccess= false
-            //     }, 3500)
-            //     this.loadingStop()
-            //     this.closeCreateModal()
-            //     window.location.reload(true)
-            // })
-            // this.loadingToClass('IngredientProfile_UpdataButton', '#ffffff80')
+            this.loadingToClass('ArticleEditModal_SubmitButton', '#ffffff80')
+            db.collection('Articles').doc(article.id).update({
+                'title': article.title
+            }).then(()=> {
+                article.sub_categories.forEach(category => {
+                    let category_copy = JSON.parse(JSON.stringify(category))
+                    if(category.hasOwnProperty('id')) {
+                        delete category_copy.id
+                        db.collection(`Articles/${article.id}/sub_categories`).doc(category.id).update(category_copy)
+                    }else{
+                        db.collection(`Articles/${article.id}/sub_categories`).add(category)
+                    }
+                })
+                this.isSuccess = true
+                setTimeout(() => {
+                    this.isSuccess= false
+                }, 3500)
+                this.loadingStop()
+                this.closeCreateModal()
+                window.location.reload(true)
+            }).catch((error) => {
+                alert(error)
+                this.loadingStop()
+                console.error("Error uodating document: ", error);
+            });
+
         },
         createArticle(article) {
             console.log(article)
@@ -174,6 +208,7 @@ export default {
             })
             .catch((error) => {
                 alert(error)
+                this.loadingStop()
                 console.error("Error adding document: ", error);
             });
 

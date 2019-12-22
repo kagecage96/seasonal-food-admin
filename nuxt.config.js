@@ -39,10 +39,10 @@
     */
     modules: [
         // Doc: https://axios.nuxtjs.org/usage
-            '@nuxtjs/axios',
-            '@nuxtjs/pwa',
-            '@nuxtjs/dotenv',
-            '@nuxtjs/style-resources',
+        '@nuxtjs/axios',
+        '@nuxtjs/pwa',
+        '@nuxtjs/dotenv',
+        '@nuxtjs/style-resources',
     ],
     /*
     ** Axios module configuration
