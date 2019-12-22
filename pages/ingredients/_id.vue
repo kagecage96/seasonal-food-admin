@@ -128,7 +128,7 @@ export default {
                 this.loadingStop()
             })
             .catch(error => {
-                alert(error)
+                alert('Error! show error details on console.')
                 console.log(error)
             })
         },
@@ -180,7 +180,6 @@ export default {
 
         },
         createArticle(article) {
-            console.log(article)
             let articleProfile = article.profile
             articleProfile['ingredient_id'] = this.ingredientId
 

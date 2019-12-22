@@ -26,7 +26,14 @@
                         :value="value"
                     ) {{value}}
             div.IngredientProfile_FormItem
-                div.IngredientProfile_FormLabel Sub_category
+                div.IngredientProfile_FormLabel category
+                el-input(v-model="newIngredient.category")
+            div.IngredientProfile_FormItem
+                div.IngredientProfile_FormLabel sub_category
+                el-input(v-model="newIngredient.sub_category")
+            div.IngredientProfile_FormItem
+                div.IngredientProfile_FormLabel sub_category_name_jp
+                el-input(v-model="newIngredient.sub_category_name_jp")
             div.IngredientProfile_UpdataButton
                 el-button(@click="update" type="danger" :disabled="!isUpdated") Update
 </template>

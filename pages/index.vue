@@ -15,7 +15,7 @@
                     :label="value"
                     :value="value"
                 ) {{value}}
-            el-button(type="primary" @click="createIngredient") 新規作成
+            el-button(type="primary" @click="showCreateModal") 新規作成
         div.Top_Body
             div.Top_Count {{filteredIngredients.length}} results
             div.Top_CardList
@@ -23,10 +23,17 @@
                     nuxt-link(:to="`ingredients/${ingredient.id}`")
                         img(:src="ingredient.image_url" width="100px" height="100px" class="Top_CardImage")
                         div.Top_CardTitle {{ingredient.name}}
+        ingredient-create-modal(
+            v-show="isActiveModal"
+            @create="createIngredient"
+            @close="closeCreateModal")
 </template>
 
+
 <script>
-import { db } from '~/plugins/firebase.js'
+import IngredientCreateModal from '~/components/IngredientCreateModal'
+
+import { db, firebase } from '~/plugins/firebase.js'
 import loading from '~/assets/loading.js'
 import prefectures from '~/assets/prefectures.js'
 import seasons from '~/assets/seasons.js'
@@ -39,7 +46,11 @@ export default {
             location: 'tokyo',
             ingredients: [], // Ingredients from firestore sorted by loacation
             filteredIngredients: [], //　Ingredients Filtered by js because firestore cannot filter by season
+            isActiveModal: false,
         }
+    },
+    components: {
+        IngredientCreateModal
     },
     mounted() {
         this.getIngredients()
@@ -77,8 +88,39 @@ export default {
             })
             this.loadingStop()
         },
-        async createIngredient() {
-
+        async createIngredient(ingredient) {
+            this.loadingToClass('IngredientCreateModal_SubmitButton', '#ffffff80')
+            let image = ingredient.image_url
+            var storageRef = firebase.storage().ref();
+            let ref = storageRef.child(`ingredients/${ingredient.name}.jpg`)
+            ref.put(image)
+            .then((snapshot)=> {
+                console.log('Uploaded a blob or file!');
+                ref.getDownloadURL().then((url) => {
+                    ingredient.image_url = url
+                    this.setIngredientToFirestore(ingredient)
+                });
+            }).catch(error => {
+                console.log(error)
+                alert('Error! show error details on console.')
+            })
+        },
+        async setIngredientToFirestore(ingredient) {
+            await db.collection("Ingredients").add(ingredient)
+            .then((docRef) => {
+                this.$router.push(`/ingredients/${docRef.id}`)
+                this.loadingStop()
+            })
+            .catch(error => {
+                alert('Error! show error details on console.')
+                console.log(error)
+            })
+        },
+        showCreateModal() {
+            this.isActiveModal = true
+        },
+        closeCreateModal() {
+            this.isActiveModal = false
         },
         sortIngredients() {
             this.filteredIngredients = this.ingredients.filter(ingredient => {
