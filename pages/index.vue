@@ -108,7 +108,7 @@ export default {
         async setIngredientToFirestore(ingredient) {
             await db.collection("Ingredients").add(ingredient)
             .then((docRef) => {
-                this.$router.push(`/ingredients/${docRef.id}`)
+                this.$router.push(`/ingredients?id=${docRef.id}`)
                 this.loadingStop()
             })
             .catch(error => {

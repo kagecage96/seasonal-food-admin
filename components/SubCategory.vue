@@ -1,6 +1,8 @@
 <template lang="pug">
     div.SubCategory
-        div.SubCategory_ItemContainer index: {{subcategory.index}}
+        div.SubCategory_ContentsFormItem
+            span index: {{index}}
+            el-button(type="danger" plain @click="deleteSubCategory") Delete
         div.SubCategory_ItemContainer
             div.SubCategory_Title
                 div.SubCategory_ContentsFormItem Subcategory title
@@ -19,6 +21,10 @@
 <script>
 export default {
     props: {
+        index: {
+            type: Number,
+            required: true
+        },
         subcategory: {
             type: Object,
             required: true
@@ -27,6 +33,9 @@ export default {
     methods: {
         addContent() {
             this.$emit('add')
+        },
+        deleteSubCategory() {
+            this.$emit('delete')
         }
     }
 }
@@ -46,7 +55,9 @@ export default {
     }
     &_ContentsFormItem {
         display: flex;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        align-items: center;
+        justify-content: space-between;
     }
     &_ContentsFormLabel {
         margin-right: 10px;

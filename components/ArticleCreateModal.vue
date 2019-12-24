@@ -12,6 +12,7 @@
                 div.ArticleCreateModal_SubCategoryContainer
                     Sub-Category(v-for="(category, index) in categories"
                                 :key="index"
+                                :index="index"
                                 :subcategory="category"
                                 @add="addContent(index)"
                                 class="ArticleCreateModal_SubCategory")
