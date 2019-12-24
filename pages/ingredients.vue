@@ -65,17 +65,20 @@ export default {
         ArticleEditModal,
         IngredientProfile
     },
-    async asyncData ({ store, params }) {
+    async asyncData(context) {
         // Get this ingredient data
         let ingredient = {}
         let ingredientId = 0
+        const id = context.query.id
         await db.collection('Ingredients')
-            .doc(params.id)
+            .doc(id)
             .get()
             .then(snapshot => {
                 if(snapshot.exists) {
                     ingredient = snapshot.data()
                     ingredientId = snapshot.id
+
+                    ingredient.seasons = ingredient.seasons.slice(0, 12)
                 }
             })
         // Get article List of this ingredient
@@ -112,7 +115,7 @@ export default {
             ingredientId: ingredientId,
             ingredientData: ingredient,
             articleJpList: articleJpList,
-            articleEnList: articleEnList
+            articleEnList: articleEnList,
         }
     },
     methods: {

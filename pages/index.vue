@@ -20,7 +20,7 @@
             div.Top_Count {{filteredIngredients.length}} results
             div.Top_CardList
                 div(v-for="ingredient in filteredIngredients" :key="ingredient.id" class="Top_Card")
-                    nuxt-link(:to="`ingredients/${ingredient.id}`")
+                    nuxt-link(:to="`ingredients?id=${ingredient.id}`")
                         img(:src="ingredient.image_url" width="100px" height="100px" class="Top_CardImage")
                         div.Top_CardTitle {{ingredient.name}}
         ingredient-create-modal(

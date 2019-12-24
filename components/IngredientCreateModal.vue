@@ -44,7 +44,6 @@ export default {
         return {
             ingredient: {
                 articles_ids: [],
-                category: '',
                 image_url: '',
                 japanese_name: '',
                 local_location_name: '',
@@ -54,7 +53,7 @@ export default {
                 sub_category_name_jp: ''
             },
             selectedSeasons: [],
-            inputType: ['name', 'japanese_name', 'category', 'sub_category', 'sub_category_name_jp'],
+            inputType: ['name', 'japanese_name', 'sub_category', 'sub_category_name_jp'],
             selectType: ['local_location_name', 'seasons'],
         }
     },
@@ -90,7 +89,6 @@ export default {
             const seasons = (new Array(12)).fill(false)
             this.ingredient = {
                 articles_ids: [],
-                category: '',
                 image_url: '',
                 japanese_name: '',
                 local_location_name: '',

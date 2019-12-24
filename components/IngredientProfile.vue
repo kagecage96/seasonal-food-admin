@@ -26,9 +26,6 @@
                         :value="value"
                     ) {{value}}
             div.IngredientProfile_FormItem
-                div.IngredientProfile_FormLabel category
-                el-input(v-model="newIngredient.category")
-            div.IngredientProfile_FormItem
                 div.IngredientProfile_FormLabel sub_category
                 el-input(v-model="newIngredient.sub_category")
             div.IngredientProfile_FormItem
