@@ -3,10 +3,12 @@ const express = require('express')
 const basicAuth = require('basic-auth-connect')
 const app = express()
 
+const USERNAME = 'UZRA'
+const PASSWORD = 'Qt1LRplNSQ'
 app.all('/*', basicAuth(function(user, password) {
-  return user === 'UZRA' && password === 'Qt1LRplNSQ';
+  return user === USERNAME && password === PASSWORD;
 }));
 
-app.use(express.static(__dirname + '/static/'))
+app.use(express.static(__dirname + '/dist/'))
 
 exports.app = functions.https.onRequest(app)
