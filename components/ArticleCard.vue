@@ -2,7 +2,9 @@
     el-card.ArticleCard
         div(slot="header" class="ArticleCard_TitleContainer")
             div.ArticleCard_Title {{article.title}}
-            el-button(type="primary" plain) edit
+            div
+                el-button(type="danger" plain @click="deleteArticle") delete
+                el-button(type="primary" plain @click="showEditModal") edit
         div.ArticleCard_ContentsContainer
             div(v-for="contentsObj in contentsList" :key="contentsObj.index" class="ArticleCard_Content")
                 div {{contentsObj.title}}
@@ -23,6 +25,12 @@ export default {
         }
     },
     methods: {
+        showEditModal() {
+            this.$emit('show')
+        },
+        deleteArticle() {
+            this.$emit('delete')
+        },
         compare(a, b) {
             let comparison = 0;
             if (a.index > b.index) {

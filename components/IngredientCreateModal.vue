@@ -27,7 +27,7 @@
                         :value="value"
                     ) {{value}}
             el-button(type="primary" class="IngredientCreateModal_SubmitButton"
-                @click.self="createIngredient"
+                @click="createIngredient"
                 :disabled="isDisabled") Create
 </template>
 
@@ -55,6 +55,7 @@ export default {
             selectedSeasons: [],
             inputType: ['name', 'japanese_name', 'sub_category', 'sub_category_name_jp'],
             selectType: ['local_location_name', 'seasons'],
+            preventDuplicate: false
         }
     },
     components: {
@@ -62,7 +63,7 @@ export default {
     },
     computed: {
         isDisabled() {
-            return this.ingredient.name.length == 0 || this.ingredient.image_url.length == 0
+            return this.ingredient.name.length == 0 || this.ingredient.image_url.length == 0 || this.preventDuplicate
         }
     },
     methods: {
@@ -83,10 +84,12 @@ export default {
             this.ingredient.image_url = file
         },
         createIngredient() {
+            this.preventDuplicate = true
             this.$emit('create', this.ingredient)
         },
         init() {
             const seasons = (new Array(12)).fill(false)
+            this.preventDuplicate = false
             this.ingredient = {
                 articles_ids: [],
                 image_url: '',

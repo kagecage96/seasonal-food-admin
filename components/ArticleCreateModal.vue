@@ -18,7 +18,7 @@
                                 class="ArticleCreateModal_SubCategory")
                 div.ArticleCreateModal_AddSubCategoryButton
                     el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
-            el-button(type="primary" class="ArticleCreateModal_SubmitButton" @click.self="createArticle" :disabled="articleTitle.length == 0") Create
+            el-button(type="primary" class="ArticleCreateModal_SubmitButton" @click="createArticle" :disabled="articleTitle.length == 0 || isDisabled") Create
 </template>
 
 <script>
@@ -33,7 +33,8 @@ export default {
                     title: '',
                     contents: ['']
                 }
-            ]
+            ],
+            isDisabled: false
         }
     },
     props: {
@@ -56,6 +57,7 @@ export default {
                 },
                 sub_categories: this.categoryFilter()
             }
+            this.isDisabled = true
             this.$emit('create', article)
         },
         categoryFilter() {
@@ -70,6 +72,7 @@ export default {
             return this.categories
         },
         initSubCategory() {
+            this.isDisabled = false,
             this.articleTitle = '',
             this.categories = [
                 {

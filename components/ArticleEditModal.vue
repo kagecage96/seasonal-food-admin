@@ -19,7 +19,7 @@
                                 class="ArticleEditModal_SubCategory")
                 div.ArticleEditModal_AddSubCategoryButton
                     el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
-            el-button(type="danger" class="ArticleEditModal_SubmitButton" @click.self="editArticle") Update
+            el-button(type="danger" class="ArticleEditModal_SubmitButton" @click="editArticle" :disabled="isDisabled") Update
 </template>
 
 <script>
@@ -39,7 +39,8 @@ export default {
                     title: '',
                     contents: ['']
                 }
-            ]
+            ],
+            isDisabled: false
         }
     },
     props: {
@@ -69,6 +70,7 @@ export default {
                 title: this.articleTitle,
                 sub_categories: this.categoryFilter()
             }
+            this.isDisabled = true
             this.$emit('update', article)
         },
         categoryFilter() {
@@ -123,6 +125,7 @@ export default {
             this.categories[index].contents.push('')
         },
         closeModal() {
+            this.isDisabled = false
             this.$emit('close')
         },
     }

@@ -47,6 +47,7 @@ export default {
             ingredients: [], // Ingredients from firestore sorted by loacation
             filteredIngredients: [], //　Ingredients Filtered by js because firestore cannot filter by season
             isActiveModal: false,
+            selectedIngredient: {}
         }
     },
     components: {
@@ -90,25 +91,37 @@ export default {
         },
         async createIngredient(ingredient) {
             this.loadingToClass('IngredientCreateModal_SubmitButton', '#ffffff80')
-            let image = ingredient.image_url
+            const image = ingredient.image_url
+            ingredient.image_url = ''
+            this.selectedIngredient = ingredient
+            await db.collection("Ingredients").add(ingredient)
+            .then((docRef) => {
+                this.setIngredientImage(image, docRef.id)
+            })
+            .catch(error => {
+                alert('Error! show error details on console.')
+                console.log(error)
+            })
+        },
+        async setIngredientImage(image, id) {
             var storageRef = firebase.storage().ref();
-            let ref = storageRef.child(`ingredients/${ingredient.name}.jpg`)
-            ref.put(image)
+            let ref = storageRef.child(`ingredients/${id}.jpg`)
+            await ref.put(image)
             .then((snapshot)=> {
                 console.log('Uploaded a blob or file!');
                 ref.getDownloadURL().then((url) => {
-                    ingredient.image_url = url
-                    this.setIngredientToFirestore(ingredient)
+                    this.selectedIngredient.image_url = url
+                    this.updateProfile(this.selectedIngredient, id)
                 });
             }).catch(error => {
                 console.log(error)
                 alert('Error! show error details on console.')
             })
         },
-        async setIngredientToFirestore(ingredient) {
-            await db.collection("Ingredients").add(ingredient)
-            .then((docRef) => {
-                this.$router.push(`/ingredients?id=${docRef.id}`)
+        async updateProfile(profile, id) {
+            await db.collection("Ingredients").doc(id).update(profile)
+            .then(()=>{
+                this.$router.push(`/ingredients?id=${id}`)
                 this.loadingStop()
             })
             .catch(error => {
