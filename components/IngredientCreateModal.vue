@@ -44,9 +44,11 @@
                         :label="value"
                         :value="value"
                     ) {{value}}
-            el-button(type="primary" class="IngredientCreateModal_SubmitButton"
-                @click="createIngredient"
-                :disabled="isDisabled") Create
+            div.IngredientCreateModal_SubmitButtonContainer
+                el-button(type="primary"
+                    class="IngredientCreateModal_SubmitButton"
+                    @click="createIngredient"
+                    :disabled="isDisabled") Create
 </template>
 
 <script>
@@ -60,9 +62,6 @@ import { mapGetters } from 'vuex'
 export default {
     name: 'IngredientCreateModal',
     mixins: [loading, prefectures],
-    async fetch({store}) {
-        await store.dispatch('subCategories', 'getSubCategories')
-    },
     data() {
         const seasons = (new Array(12)).fill(false)
         return {
@@ -189,8 +188,11 @@ export default {
     &_AddSubCategoryButton {
         text-align: center;
     }
-    &_SubmitButton {
+    &_SubmitButtonContainer {
         margin-top: auto;
+    }
+    &_SubmitButton {
+        width: 100%;
     }
 }
 </style>

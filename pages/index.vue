@@ -23,10 +23,11 @@
                     nuxt-link(:to="`ingredients?id=${ingredient.id}`")
                         img(:src="ingredient.image_url" width="100px" height="100px" class="Top_CardImage")
                         div.Top_CardTitle {{ingredient.name}}
-        ingredient-create-modal(
-            v-show="isActiveModal"
-            @create="createIngredient"
-            @close="closeCreateModal")
+        div.Top_IngredientCreateModal
+            ingredient-create-modal(
+                v-show="isActiveModal"
+                @create="createIngredient"
+                @close="closeCreateModal")
 </template>
 
 
@@ -40,6 +41,9 @@ import seasons from '~/assets/seasons.js'
 
 export default {
     mixins: [loading, prefectures, seasons],
+    async fetch({store}) {
+        await store.dispatch('subCategories/getSubCategories')
+    },
     data() {
         return {
             season: 0,
@@ -54,7 +58,7 @@ export default {
         IngredientCreateModal
     },
     mounted() {
-        // this.getIngredients()
+        this.getIngredients()
     },
     watch: {
         location() {
@@ -90,7 +94,7 @@ export default {
             this.loadingStop()
         },
         async createIngredient(ingredient) {
-            this.loadingToClass('IngredientCreateModal_SubmitButton', '#ffffff80')
+            this.loadingToClass('IngredientCreateModal_SubmitButtonContainer', '#ffffff80')
             const image = ingredient.image_url
             ingredient.image_url = ''
             this.selectedIngredient = ingredient
@@ -178,6 +182,9 @@ export default {
     }
     &_CardImage {
         margin-bottom: 15px;
+    }
+    &_IngredientCreateModal {
+
     }
 }
 </style>

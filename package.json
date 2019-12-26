@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "nuxt",
     "build": "nuxt build",
-    "postbuild": "cp -r -f dist functions",
+    "postbuild": "mv -f dist functions",
     "serve": "firebase serve --only hosting",
-    "deploy": "firebase deploy --only hosting",
+    "deploy": "firebase deploy",
     "start": "nuxt start",
     "generate": "nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore ."

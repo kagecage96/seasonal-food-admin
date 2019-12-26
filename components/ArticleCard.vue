@@ -2,7 +2,7 @@
     el-card.ArticleCard
         div(slot="header" class="ArticleCard_TitleContainer")
             div.ArticleCard_Title {{article.title}}
-            div
+            div.ArticleCard_ButtonWrapper
                 el-button(type="danger" plain @click="deleteArticle") delete
                 el-button(type="primary" plain @click="showEditModal") edit
         div.ArticleCard_ContentsContainer
@@ -56,6 +56,9 @@ export default {
     &_Title {
         word-break: break-all;
         padding-right: 10px;
+    }
+    &_ButtonWrapper {
+        flex-shrink: 0;
     }
     &_Content {
         margin-bottom: 10px;
