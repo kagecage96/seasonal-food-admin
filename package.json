@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "dev": "nuxt",
+    "prebuild": "rm -rf functions/dist",
     "build": "nuxt build",
     "postbuild": "mv -f dist functions",
     "serve": "firebase serve --only hosting",

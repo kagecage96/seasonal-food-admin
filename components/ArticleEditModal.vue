@@ -1,28 +1,33 @@
 <template lang="pug">
     div.ArticleEditModal
         div(@click.self="closeModal" class="ArticleEditModal_Layer")
-        el-form(ref="ArticleForm" @submit.prevent="" class="ArticleEditModal_Container")
-            div.ArticleEditModal_FormItemContainer
-                h2.ArticleEditModal_FormItemLabel._isTitle Edit Article
-            div.ArticleEditModal_FormItemContainer
-                div.ArticleEditModal_FormItemLabel ArticleTitle
-                el-input(v-model="articleTitle")
-            div.ArticleEditModal_FormItemContainer
-                div.ArticleEditModal_FormItemLabel Sub_categories
-                div.ArticleEditModal_SubCategoryContainer
-                    Sub-Category(v-for="(category, index) in categories"
-                                :key="index"
-                                :index="index"
-                                :subcategory="category"
-                                @add="addContent(index)"
-                                @delete="deleteSubCategory(index, category)"
-                                class="ArticleEditModal_SubCategory")
-                div.ArticleEditModal_AddSubCategoryButton
-                    el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
-            el-button(type="danger" class="ArticleEditModal_SubmitButton" @click="editArticle" :disabled="isDisabled") Update
+        div.ArticleEditModal_Container
+            el-form(ref="ArticleForm" @submit.prevent="" class="ArticleEditModal_FormContainer")
+                div.ArticleEditModal_FormItemContainer
+                    h2.ArticleEditModal_FormItemLabel._isTitle Edit Article
+                div.ArticleEditModal_FormItemContainer
+                    div.ArticleEditModal_FormItemLabel ArticleTitle
+                    el-input(v-model="articleTitle")
+                div.ArticleEditModal_FormItemContainer
+                    div.ArticleEditModal_FormItemLabel Sub_categories
+                    div.ArticleEditModal_SubCategoryContainer
+                        Sub-Category(v-for="(category, index) in categories"
+                                    :key="category.id"
+                                    :index="index"
+                                    :subcategory="category"
+                                    @add="addContent(index)"
+                                    @delete="deleteSubCategory(index, category)"
+                                    class="ArticleEditModal_SubCategory")
+                    div.ArticleEditModal_AddSubCategoryButton
+                        el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
+                div.ArticleEditModal_FormItemContainer
+                    el-button(type="danger" class="ArticleEditModal_SubmitButton" @click="editArticle" :disabled="isDisabled") Update
+            article-preview(:article="articleData" class="ArticleCreateModal_PreviewContainer")
+
 </template>
 
 <script>
+import ArticlePreview from '~/components/ArticlePreview'
 import SubCategory from '~/components/SubCategory'
 import { db, firebase } from '~/plugins/firebase.js'
 import loading from '~/assets/loading.js'
@@ -40,6 +45,7 @@ export default {
                     contents: ['']
                 }
             ],
+            deleteCategoryIds: [],
             isDisabled: false
         }
     },
@@ -55,12 +61,22 @@ export default {
         }
     },
     components: {
-        SubCategory
+        SubCategory,
+        ArticlePreview
+    },
+    computed: {
+        articleData() {
+            let content = Array.from(this.categories)
+            return {
+                title: this.articleTitle,
+                content: this.categoryFilter(content)
+            }
+        },
     },
     watch: {
         article() {
             this.articleTitle = this.article.title
-            this.categories = this.article.content
+            this.categories = Array.from(this.article.content)
         }
     },
     methods: {
@@ -68,14 +84,14 @@ export default {
             const article = {
                 id: this.article.id,
                 title: this.articleTitle,
-                sub_categories: this.categoryFilter()
+                sub_categories: this.categoryFilter(this.categories)
             }
             this.isDisabled = true
-            this.$emit('update', article)
+            this.$emit('update', {article: article, deleteIds: this.deleteCategoryIds})
         },
-        categoryFilter() {
+        categoryFilter(categories) {
             // Return valid sub-category (has title and no-empty content)
-            this.categories = this.categories.filter((category, index) => {
+            categories = categories.filter((category, index) => {
                 if(category.title.length == 0) return false
                 category.contents = category.contents.filter(content => {
                     if(content) return content
@@ -83,7 +99,7 @@ export default {
                 category['index'] = index
                 return category
             })
-            return this.categories
+            return categories
         },
         addSubCategory() {
             const categoryInit = {
@@ -96,37 +112,24 @@ export default {
         async deleteSubCategory(index, category) {
             const target = document.body.getElementsByClassName('ArticleEditModal_SubCategory')[index]
             this.loadingToElement(target, '#ffffff80')
-            if(!category.id) {
-                this.loadingStop()
-                this.categories.splice(index, 1)
-            } else {
-                await db.collection(`Articles/${this.article.id}/sub_categories`).doc(category.id).delete()
-                .then(()=>{
-                    this.categories.splice(index, 1)
-                    this.loadingStop()
-                    let sub_categories = this.categoryFilter()
-                    sub_categories.forEach(category => {
-                        let category_copy = JSON.parse(JSON.stringify(category))
-                        if(category.hasOwnProperty('id')) {
-                            delete category_copy.id
-                            db.collection(`Articles/${this.article.id}/sub_categories`).doc(category.id).update(category_copy)
-                        }else{
-                            db.collection(`Articles/${this.article.id}/sub_categories`).add(category)
-                        }
-                    })
-                })
-                .catch(error => {
-                    alert('Error! show error details on console.')
-                    console.log(error)
-                })
+            this.loadingStop()
+            if(category.hasOwnProperty('id')) {
+                this.deleteCategoryIds.push(category.id)
             }
+            this.categories.splice(index, 1)
         },
         addContent(index) {
             this.categories[index].contents.push('')
         },
-        closeModal() {
+        init() {
+            this.deleteCategoryIds = []
+            this.articleTitle = this.article.title
+            this.categories = Array.from(this.article.content)
             this.isDisabled = false
+        },
+        closeModal() {
             this.$emit('close')
+            this.init()
         },
     }
 }
@@ -146,7 +149,7 @@ export default {
     &_Container {
         position: fixed;
         z-index: 2;
-        width: 80%;
+        width: 90%;
         top: 30px;
         bottom: 30px;
         left: 0;
@@ -156,7 +159,11 @@ export default {
         padding: 50px 80px;
         overflow: scroll;
         display: flex;
-        flex-direction: column;
+    }
+    &_FormContainer {
+        overflow: scroll;
+        flex-grow: 1;
+        margin-right: 50px;
     }
     &_SubCategory {
         &:nth-last-of-type(n+2) {

@@ -172,19 +172,27 @@ export default {
                 alert('Error! show error details on console.')
             })
         },
-        updateArticle(article) {
+        updateArticle(target) {
+            const article = target.article
+            const deleteIds = target.deleteIds
+            console.log(target)
             this.loadingToClass('ArticleEditModal_SubmitButton', '#ffffff80')
             db.collection('Articles').doc(article.id).update({
                 'title': article.title
             }).then(()=> {
                 article.sub_categories.forEach(category => {
                     let category_copy = JSON.parse(JSON.stringify(category))
+                    // update category
                     if(category.hasOwnProperty('id')) {
                         delete category_copy.id
                         db.collection(`Articles/${article.id}/sub_categories`).doc(category.id).update(category_copy)
                     }else{
                         db.collection(`Articles/${article.id}/sub_categories`).add(category)
                     }
+                    // delete category
+                    deleteIds.forEach(categoryId => {
+                        db.collection(`Articles/${article.id}/sub_categories`).doc(categoryId).delete()
+                    })
                 })
                 this.isSuccess = true
                 setTimeout(() => {

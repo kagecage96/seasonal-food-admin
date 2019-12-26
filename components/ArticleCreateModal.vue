@@ -1,27 +1,33 @@
 <template lang="pug">
     div.ArticleCreateModal
-        div(@click.self="closeModal" class="ArticleCreateModal_Layer")
-        el-form(ref="ArticleForm" @submit.prevent="" class="ArticleCreateModal_Container")
-            div.ArticleCreateModal_FormItemContainer
-                h2.ArticleCreateModal_FormItemLabel._isTitle Create a new Article_ {{lang}}
-            div.ArticleCreateModal_FormItemContainer
-                div.ArticleCreateModal_FormItemLabel ArticleTitle
-                el-input(v-model="articleTitle")
-            div.ArticleCreateModal_FormItemContainer
-                div.ArticleCreateModal_FormItemLabel Sub_categories
-                div.ArticleCreateModal_SubCategoryContainer
-                    Sub-Category(v-for="(category, index) in categories"
-                                :key="index"
-                                :index="index"
-                                :subcategory="category"
-                                @add="addContent(index)"
-                                class="ArticleCreateModal_SubCategory")
-                div.ArticleCreateModal_AddSubCategoryButton
-                    el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
-            el-button(type="primary" class="ArticleCreateModal_SubmitButton" @click="createArticle" :disabled="articleTitle.length == 0 || isDisabled") Create
+        div.ArticleCreateModal_FormWrapper
+            div(@click.self="closeModal" class="ArticleCreateModal_Layer")
+            div.ArticleCreateModal_Container
+                el-form(ref="ArticleForm" @submit.prevent="" class="ArticleCreateModal_FormContainer")
+                    div.ArticleCreateModal_FormItemContainer
+                        h2.ArticleCreateModal_FormItemLabel._isTitle Create a new Article_ {{lang}}
+                    div.ArticleCreateModal_FormItemContainer
+                        div.ArticleCreateModal_FormItemLabel ArticleTitle
+                        el-input(v-model="articleTitle")
+                    div.ArticleCreateModal_FormItemContainer
+                        div.ArticleCreateModal_FormItemLabel Sub_categories
+                        div.ArticleCreateModal_SubCategoryContainer
+                            Sub-Category(v-for="(category, index) in categories"
+                                        :key="index"
+                                        :index="index"
+                                        :subcategory="category"
+                                        @delete="deleteSubCategory(index, category)"
+                                        @add="addContent(index)"
+                                        class="ArticleCreateModal_SubCategory")
+                        div.ArticleCreateModal_AddSubCategoryButton
+                            el-button(@click="addSubCategory" type="info" icon="el-icon-plus" circle)
+                    div.ArticleCreateModal_FormItemContainer
+                        el-button(type="primary" class="ArticleCreateModal_SubmitButton" @click="createArticle" :disabled="articleTitle.length == 0 || isDisabled") Create
+                article-preview(:article="articleData" class="ArticleCreateModal_PreviewContainer")
 </template>
 
 <script>
+import ArticlePreview from '~/components/ArticlePreview'
 import SubCategory from '~/components/SubCategory'
 export default {
     data() {
@@ -45,31 +51,41 @@ export default {
         }
     },
     components: {
-        SubCategory
+        SubCategory,
+        ArticlePreview
+    },
+    computed: {
+        articleData() {
+            let content = Array.from(this.categories)
+            return {
+                title: this.articleTitle,
+                content: this.categoryFilter(content)
+            }
+        }
     },
     methods: {
         createArticle() {
-            const article = {
+            const articleFormat = {
                 profile: {
                     language: this.lang,
                     title: this.articleTitle,
                     ingredient_id: ""
                 },
-                sub_categories: this.categoryFilter()
+                sub_categories: this.categoryFilter(this.categories)
             }
             this.isDisabled = true
-            this.$emit('create', article)
+            this.$emit('create', articleFormat)
         },
-        categoryFilter() {
+        categoryFilter(categories) {
             // Return valid sub-category (has title and no-empty content)
-            this.categories = this.categories.filter(category => {
+            categories = categories.filter(category => {
                 if(category.title.length == 0) return false
                 category.contents = category.contents.filter(content => {
                     if(content) return content
                 })
                 return category
             })
-            return this.categories
+            return categories
         },
         initSubCategory() {
             this.isDisabled = false,
@@ -89,6 +105,9 @@ export default {
                     contents: ['']
                 }
             this.categories.push(categoryInit)
+        },
+        deleteSubCategory(index, category) {
+            this.categories.splice(index, 1)
         },
         addContent(index) {
             this.categories[index].contents.push('')
@@ -115,7 +134,7 @@ export default {
     &_Container {
         position: fixed;
         z-index: 2;
-        width: 80%;
+        width: 90%;
         top: 30px;
         bottom: 30px;
         left: 0;
@@ -125,7 +144,15 @@ export default {
         padding: 50px 80px;
         overflow: scroll;
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
+    }
+    &_FormContainer {
+        overflow: scroll;
+        flex-grow: 1;
+        margin-right: 50px;
+    }
+    &_PreviewContainer {
+        flex-shrink: 0;
     }
     &_SubCategory {
         &:nth-last-of-type(n+2) {
@@ -152,6 +179,7 @@ export default {
     }
     &_SubmitButton {
         margin-top: auto;
+        width: 100%;
     }
 }
 </style>

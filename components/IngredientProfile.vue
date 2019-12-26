@@ -98,13 +98,17 @@ export default {
         },
         'newIngredient.sub_category': function(val) {
             const subCategory = this.subCategories.find(subCategory => subCategory.name == val)
-            this.newIngredient.sub_category_name_jp = subCategory.jp_name
-            this.newIngredient.sub_category_id = subCategory.id
+            if(subCategory) {
+                this.newIngredient.sub_category_name_jp = subCategory.jp_name
+                this.newIngredient.sub_category_id = subCategory.id
+            }
         },
         'newIngredient.sub_category_name_jp': function(val) {
             const subCategory = this.subCategories.find(subCategory => subCategory.jp_name == val)
-            this.newIngredient.sub_category = subCategory.name
-            this.newIngredient.sub_category_id = subCategory.id
+            if(subCategory) {
+                this.newIngredient.sub_category = subCategory.name
+                this.newIngredient.sub_category_id = subCategory.id
+            }
         },
     },
     methods: {
