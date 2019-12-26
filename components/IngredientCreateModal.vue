@@ -11,6 +11,24 @@
                 div.IngredientCreateModal_FormItemLabel {{key}}
                 el-input(v-model="ingredient[key]")
             div(class="IngredientCreateModal_FormItemContainer")
+                div.IngredientCreateModal_FormItemLabel sub_category
+                el-select(v-model="ingredient.sub_category" class="Top_SelectBox")
+                    el-option(
+                        v-for="(value, key) in subCategories"
+                        :key="key"
+                        :label="value.name"
+                        :value="value.name"
+                    ) {{value.name}}
+            div(class="IngredientCreateModal_FormItemContainer")
+                div.IngredientCreateModal_FormItemLabel sub_category_name_jp
+                el-select(v-model="ingredient.sub_category_name_jp" class="Top_SelectBox")
+                    el-option(
+                        v-for="(value, key) in subCategories"
+                        :key="key"
+                        :label="value.jp_name"
+                        :value="value.jp_name"
+                    ) {{value.jp_name}}
+            div(class="IngredientCreateModal_FormItemContainer")
                 div.IngredientCreateModal_FormItemLabel seasons
                 el-checkbox-group(v-model="selectedSeasons" @change="setSeasons")
                     el-checkbox(v-for="(season, index) in ingredient.seasons"
@@ -32,13 +50,19 @@
 </template>
 
 <script>
+import { db } from '~/plugins/firebase.js'
+
 import IngredientImage from '~/components/IngredientImage'
 import prefectures from '~/assets/prefectures.js'
 import loading from '~/assets/loading.js'
+import { mapGetters } from 'vuex'
 
 export default {
     name: 'IngredientCreateModal',
     mixins: [loading, prefectures],
+    async fetch({store}) {
+        await store.dispatch('subCategories', 'getSubCategories')
+    },
     data() {
         const seasons = (new Array(12)).fill(false)
         return {
@@ -49,12 +73,13 @@ export default {
                 local_location_name: '',
                 name: '',
                 seasons: seasons,
+                sub_category_id: '',
                 sub_category: '',
-                sub_category_name_jp: ''
+                sub_category_name_jp: '',
             },
+            sub_categories: [],
             selectedSeasons: [],
-            inputType: ['name', 'japanese_name', 'sub_category', 'sub_category_name_jp'],
-            selectType: ['local_location_name', 'seasons'],
+            inputType: ['name', 'japanese_name'],
             preventDuplicate: false
         }
     },
@@ -62,9 +87,22 @@ export default {
         IngredientImage
     },
     computed: {
+        ...mapGetters('subCategories', ['subCategories']),
         isDisabled() {
             return this.ingredient.name.length == 0 || this.ingredient.image_url.length == 0 || this.preventDuplicate
         }
+    },
+    watch: {
+        'ingredient.sub_category': function(val) {
+            const subCategory = this.subCategories.find(subCategory => subCategory.name == val)
+            this.ingredient.sub_category_name_jp = subCategory.jp_name
+            this.ingredient.sub_category_id = subCategory.id
+        },
+        'ingredient.sub_category_name_jp': function(val) {
+            const subCategory = this.subCategories.find(subCategory => subCategory.jp_name == val)
+            this.ingredient.sub_category = subCategory.name
+            this.ingredient.sub_category_id = subCategory.id
+        },
     },
     methods: {
         setSeasons(seasonNumbers) {

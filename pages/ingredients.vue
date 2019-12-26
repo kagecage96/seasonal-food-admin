@@ -56,6 +56,9 @@ import loading from '~/assets/loading.js'
 
 export default {
     mixins: [loading],
+    async fetch({store}) {
+        await store.dispatch('subCategories/getSubCategories')
+    },
     data() {
         return {
             isActiveCreateModal: false,

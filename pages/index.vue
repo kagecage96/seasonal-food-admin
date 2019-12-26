@@ -54,7 +54,7 @@ export default {
         IngredientCreateModal
     },
     mounted() {
-        this.getIngredients()
+        // this.getIngredients()
     },
     watch: {
         location() {
