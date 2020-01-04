@@ -10,28 +10,28 @@
 
 <script>
 export default {
-    props: {
-        article: {
-            type: Object,
-            required: true
-        }
-    },
-    computed: {
-        contentsList() {
-            return this.article.content.sort(this.compare)
-        }
-    },
-    methods: {
-        compare(a, b) {
-            let comparison = 0;
-            if (a.index > b.index) {
-                comparison = 1;
-            } else if (a.index < b.index) {
-                comparison = -1;
-            }
-            return comparison;
-        }
+  props: {
+    article: {
+      type: Object,
+      required: true
     }
+  },
+  computed: {
+    contentsList () {
+      return this.article.content.sort(this.compare)
+    }
+  },
+  methods: {
+    compare (a, b) {
+      let comparison = 0
+      if (a.index > b.index) {
+        comparison = 1
+      } else if (a.index < b.index) {
+        comparison = -1
+      }
+      return comparison
+    }
+  }
 }
 </script>
 

@@ -33,105 +33,105 @@ import { db, firebase } from '~/plugins/firebase.js'
 import loading from '~/assets/loading.js'
 
 export default {
-    mixins: [loading],
-    data() {
-        return {
-            articleTitle: '',
-            categories: [
-                {
-                    id: '',
-                    index: 0,
-                    title: '',
-                    contents: ['']
-                }
-            ],
-            deleteCategoryIds: [],
-            isDisabled: false
-        }
+  components: {
+    SubCategory,
+    ArticlePreview
+  },
+  mixins: [loading],
+  props: {
+    lang: {
+      type: String,
+      required: true,
+      default: 'japanese'
     },
-    props: {
-        lang: {
-            type: String,
-            required: true,
-            default: 'japanese'
-        },
-        article: {
-            type: Object,
-            required: true
-        }
-    },
-    components: {
-        SubCategory,
-        ArticlePreview
-    },
-    computed: {
-        articleData() {
-            let content = Array.from(this.categories)
-            return {
-                title: this.articleTitle,
-                content: this.categoryFilter(content)
-            }
-        },
-    },
-    watch: {
-        article() {
-            this.articleTitle = this.article.title
-            this.categories = Array.from(this.article.content)
-        }
-    },
-    methods: {
-        editArticle() {
-            const article = {
-                id: this.article.id,
-                title: this.articleTitle,
-                sub_categories: this.categoryFilter(this.categories)
-            }
-            this.isDisabled = true
-            this.$emit('update', {article: article, deleteIds: this.deleteCategoryIds})
-        },
-        categoryFilter(categories) {
-            // Return valid sub-category (has title and no-empty content)
-            categories = categories.filter((category, index) => {
-                if(category.title.length == 0) return false
-                category.contents = category.contents.filter(content => {
-                    if(content) return content
-                })
-                category['index'] = index
-                return category
-            })
-            return categories
-        },
-        addSubCategory() {
-            const categoryInit = {
-                    index: this.categories.length,
-                    title: '',
-                    contents: ['']
-                }
-            this.categories.push(categoryInit)
-        },
-        async deleteSubCategory(index, category) {
-            const target = document.body.getElementsByClassName('ArticleEditModal_SubCategory')[index]
-            this.loadingToElement(target, '#ffffff80')
-            this.loadingStop()
-            if(category.hasOwnProperty('id')) {
-                this.deleteCategoryIds.push(category.id)
-            }
-            this.categories.splice(index, 1)
-        },
-        addContent(index) {
-            this.categories[index].contents.push('')
-        },
-        init() {
-            this.deleteCategoryIds = []
-            this.articleTitle = this.article.title
-            this.categories = Array.from(this.article.content)
-            this.isDisabled = false
-        },
-        closeModal() {
-            this.$emit('close')
-            this.init()
-        },
+    article: {
+      type: Object,
+      required: true
     }
+  },
+  data () {
+    return {
+      articleTitle: '',
+      categories: [
+        {
+          id: '',
+          index: 0,
+          title: '',
+          contents: ['']
+        }
+      ],
+      deleteCategoryIds: [],
+      isDisabled: false
+    }
+  },
+  computed: {
+    articleData () {
+      const content = Array.from(this.categories)
+      return {
+        title: this.articleTitle,
+        content: this.categoryFilter(content)
+      }
+    }
+  },
+  watch: {
+    article () {
+      this.articleTitle = this.article.title
+      this.categories = Array.from(this.article.content)
+    }
+  },
+  methods: {
+    editArticle () {
+      const article = {
+        id: this.article.id,
+        title: this.articleTitle,
+        sub_categories: this.categoryFilter(this.categories)
+      }
+      this.isDisabled = true
+      this.$emit('update', { article, deleteIds: this.deleteCategoryIds })
+    },
+    categoryFilter (categories) {
+      // Return valid sub-category (has title and no-empty content)
+      categories = categories.filter((category, index) => {
+        if (category.title.length == 0) { return false }
+        category.contents = category.contents.filter((content) => {
+          if (content) { return content }
+        })
+        category.index = index
+        return category
+      })
+      return categories
+    },
+    addSubCategory () {
+      const categoryInit = {
+        index: this.categories.length,
+        title: '',
+        contents: ['']
+      }
+      this.categories.push(categoryInit)
+    },
+    async deleteSubCategory (index, category) {
+      const target = document.body.getElementsByClassName('ArticleEditModal_SubCategory')[index]
+      this.loadingToElement(target, '#ffffff80')
+      this.loadingStop()
+      if (category.hasOwnProperty('id')) {
+        this.deleteCategoryIds.push(category.id)
+      }
+      this.categories.splice(index, 1)
+    },
+    addContent (index) {
+      this.categories[index].contents.push('')
+    },
+    init () {
+      this.deleteCategoryIds = []
+      this.articleTitle = this.article.title
+      this.categories = Array.from(this.article.content)
+      this.isDisabled = false
+    },
+    closeModal () {
+      this.$emit('close')
+      this.init()
+    }
+  }
 }
 </script>
 

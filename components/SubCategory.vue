@@ -20,24 +20,24 @@
 
 <script>
 export default {
-    props: {
-        index: {
-            type: Number,
-            required: true
-        },
-        subcategory: {
-            type: Object,
-            required: true
-        }
+  props: {
+    index: {
+      type: Number,
+      required: true
     },
-    methods: {
-        addContent() {
-            this.$emit('add')
-        },
-        deleteSubCategory() {
-            this.$emit('delete')
-        }
+    subcategory: {
+      type: Object,
+      required: true
     }
+  },
+  methods: {
+    addContent () {
+      this.$emit('add')
+    },
+    deleteSubCategory () {
+      this.$emit('delete')
+    }
+  }
 }
 </script>
 

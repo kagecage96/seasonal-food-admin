@@ -30,93 +30,93 @@
 import ArticlePreview from '~/components/ArticlePreview'
 import SubCategory from '~/components/SubCategory'
 export default {
-    data() {
-        return {
-            articleTitle: '',
-            categories: [
-                {
-                    index: 0,
-                    title: '',
-                    contents: ['']
-                }
-            ],
-            isDisabled: false
-        }
-    },
-    props: {
-        lang: {
-            type: String,
-            required: true,
-            default: 'japanese'
-        }
-    },
-    components: {
-        SubCategory,
-        ArticlePreview
-    },
-    computed: {
-        articleData() {
-            let content = Array.from(this.categories)
-            return {
-                title: this.articleTitle,
-                content: this.categoryFilter(content)
-            }
-        }
-    },
-    methods: {
-        createArticle() {
-            const articleFormat = {
-                profile: {
-                    language: this.lang,
-                    title: this.articleTitle,
-                    ingredient_id: ""
-                },
-                sub_categories: this.categoryFilter(this.categories)
-            }
-            this.isDisabled = true
-            this.$emit('create', articleFormat)
-        },
-        categoryFilter(categories) {
-            // Return valid sub-category (has title and no-empty content)
-            categories = categories.filter(category => {
-                if(category.title.length == 0) return false
-                category.contents = category.contents.filter(content => {
-                    if(content) return content
-                })
-                return category
-            })
-            return categories
-        },
-        initSubCategory() {
-            this.isDisabled = false,
-            this.articleTitle = '',
-            this.categories = [
-                {
-                    index: 0,
-                    title: '',
-                    contents: ['']
-                }
-            ]
-        },
-        addSubCategory() {
-            const categoryInit = {
-                    index: this.categories.length,
-                    title: '',
-                    contents: ['']
-                }
-            this.categories.push(categoryInit)
-        },
-        deleteSubCategory(index, category) {
-            this.categories.splice(index, 1)
-        },
-        addContent(index) {
-            this.categories[index].contents.push('')
-        },
-        closeModal() {
-            this.$emit('close')
-            this.initSubCategory()
-        },
+  components: {
+    SubCategory,
+    ArticlePreview
+  },
+  props: {
+    lang: {
+      type: String,
+      required: true,
+      default: 'japanese'
     }
+  },
+  data () {
+    return {
+      articleTitle: '',
+      categories: [
+        {
+          index: 0,
+          title: '',
+          contents: ['']
+        }
+      ],
+      isDisabled: false
+    }
+  },
+  computed: {
+    articleData () {
+      const content = Array.from(this.categories)
+      return {
+        title: this.articleTitle,
+        content: this.categoryFilter(content)
+      }
+    }
+  },
+  methods: {
+    createArticle () {
+      const articleFormat = {
+        profile: {
+          language: this.lang,
+          title: this.articleTitle,
+          ingredient_id: ''
+        },
+        sub_categories: this.categoryFilter(this.categories)
+      }
+      this.isDisabled = true
+      this.$emit('create', articleFormat)
+    },
+    categoryFilter (categories) {
+      // Return valid sub-category (has title and no-empty content)
+      categories = categories.filter((category) => {
+        if (category.title.length == 0) { return false }
+        category.contents = category.contents.filter((content) => {
+          if (content) { return content }
+        })
+        return category
+      })
+      return categories
+    },
+    initSubCategory () {
+      this.isDisabled = false,
+      this.articleTitle = '',
+      this.categories = [
+        {
+          index: 0,
+          title: '',
+          contents: ['']
+        }
+      ]
+    },
+    addSubCategory () {
+      const categoryInit = {
+        index: this.categories.length,
+        title: '',
+        contents: ['']
+      }
+      this.categories.push(categoryInit)
+    },
+    deleteSubCategory (index, category) {
+      this.categories.splice(index, 1)
+    },
+    addContent (index) {
+      this.categories[index].contents.push('')
+    },
+    closeModal () {
+      this.$emit('close')
+      this.initSubCategory()
+    }
+  }
 }
 </script>
 

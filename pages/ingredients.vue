@@ -55,289 +55,300 @@ import ArticleEditModal from '~/components/ArticleEditModal.vue'
 import loading from '~/assets/loading.js'
 
 export default {
-    mixins: [loading],
-    async fetch({store}) {
-        await store.dispatch('subCategories/getSubCategories')
-    },
-    data() {
-        return {
-            isActiveCreateModal: false,
-            isActiveEditModal: false,
-            selectedArticle: {},
-            modalType: 'japanese',
-            isSuccess: false // Where firestore action is success
-        }
-    },
-    components: {
-        ArticleCard,
-        ArticleCreateModal,
-        ArticleEditModal,
-        IngredientProfile
-    },
-    async asyncData(context) {
-        // Get this ingredient data
-        let ingredient = {}
-        let ingredientId = 0
-        const id = context.query.id
-        await db.collection('Ingredients')
-            .doc(id)
-            .get()
-            .then(snapshot => {
-                if(snapshot.exists) {
-                    ingredient = snapshot.data()
-                    ingredientId = snapshot.id
-
-                    ingredient.seasons = ingredient.seasons.slice(0, 12)
-                }
-            })
-            .catch(error=> {
-                alert('This ingredient is nothing!')
-                console.log(error)
-                context.redirect('/');
-            })
-        // Get article List of this ingredient
-        let articleJpList = []
-        let articleEnList = []
-        let articleSnapshot = {}
-        const articleIds = ingredient.articles_ids
-        try {
-            await articleIds.forEach(article_id => {
-                db.collection('Articles')
-                .doc(article_id)
-                .get()
-                .then(snapshot => {
-                    let article = snapshot.data()
-                    article['id'] = article_id
-                    article['content'] = []
-                    db.collection(`Articles/${article_id}/sub_categories`)
-                    .get()
-                    .then(snapshot_categories => {
-                        snapshot_categories.forEach(function(doc) {
-                            let content = doc.data()
-                            content['id'] = doc.id
-                            article['content'].push(content)
-                        });
-                    })
-                    if(article.language == 'japanese') articleJpList.push(article)
-                    else articleEnList.push(article)
-                })
-                .catch(err => {
-                    console.log(err)
-                    alert('Error! show error details on console.')
-                })
-            });
-        }catch(error) {
-            alert('This ingredient is nothing!')
-            console.log(error)
-            context.redirect('/');
-        }
-        return {
-            ingredientId: ingredientId,
-            ingredientData: ingredient,
-            articleJpList: articleJpList,
-            articleEnList: articleEnList,
-        }
-    },
-    methods: {
-        async updateProfile(profile) {
-            this.loadingToClass('IngredientProfile_UpdataButton', '#ffffff80')
-            await db.collection("Ingredients").doc(this.ingredientId).update(profile)
-            .then(() => {
-                this.ingredientData = profile
-                this.isSuccess = true
-                setTimeout(() => {
-                    this.isSuccess= false
-                }, 3500)
-                this.loadingStop()
-            })
-            .catch(error => {
-
-            })
-        },
-        updateProfileWithImage(payload){
-            let profile = payload.profile
-            let image = payload.image
-            var storageRef = firebase.storage().ref();
-            let ref = storageRef.child(`ingredients/${this.ingredientId}.jpg`)
-
-            ref.put(image)
-            .then((snapshot)=> {
-                console.log('Uploaded a blob or file!');
-                ref.getDownloadURL().then((url) => {
-                    profile.image_url = url
-                    this.updateProfile(profile)
-                });
-            }).catch(error => {
-                console.log(error)
-                alert('Error! show error details on console.')
-            })
-        },
-        updateArticle(target) {
-            const article = target.article
-            const deleteIds = target.deleteIds
-            console.log(target)
-            this.loadingToClass('ArticleEditModal_SubmitButton', '#ffffff80')
-            db.collection('Articles').doc(article.id).update({
-                'title': article.title
-            }).then(()=> {
-                article.sub_categories.forEach(category => {
-                    let category_copy = JSON.parse(JSON.stringify(category))
-                    // update category
-                    if(category.hasOwnProperty('id')) {
-                        delete category_copy.id
-                        db.collection(`Articles/${article.id}/sub_categories`).doc(category.id).update(category_copy)
-                    }else{
-                        db.collection(`Articles/${article.id}/sub_categories`).add(category)
-                    }
-                    // delete category
-                    deleteIds.forEach(categoryId => {
-                        db.collection(`Articles/${article.id}/sub_categories`).doc(categoryId).delete()
-                    })
-                })
-                this.isSuccess = true
-                setTimeout(() => {
-                    this.isSuccess= false
-                }, 3500)
-                this.loadingStop()
-                this.closeCreateModal()
-                window.location.reload(true)
-            }).catch((error) => {
-                alert(error)
-                this.loadingStop()
-                console.log(error)
-                console.error('Error! show error details on console.');
-            });
-
-        },
-        createArticle(article) {
-            let articleProfile = article.profile
-            articleProfile['ingredient_id'] = this.ingredientId
-
-            this.loadingToClass('ArticleCreateModal_SubmitButton', '#ffffff80')
-
-            db.collection("Articles").add(articleProfile)
-            .then((docRef) => {
-                let articles_ids = this.ingredientData.articles_ids
-                articles_ids.push(docRef.id)
-
-                article.sub_categories.forEach(category => {
-                    db.collection(`Articles/${docRef.id}/sub_categories`).add(category)
-                })
-
-                db.collection('Ingredients').doc(this.ingredientId).update({
-                    'articles_ids': articles_ids
-                }).then(()=> {
-                    this.isSuccess = true
-                    setTimeout(() => {
-                        this.isSuccess= false
-                    }, 3500)
-                    this.loadingStop()
-                    this.closeCreateModal()
-                    window.location.reload(true)
-                })
-            })
-            .catch((error) => {
-                alert(error)
-                this.loadingStop()
-                console.error("Error adding document: ", error);
-            });
-
-        },
-        async deleteArticle(id) {
-            await this.$confirm('一度消すと復元することができません。この記事を本当に消しますか？', 'Warning', {
-                confirmButtonText: 'Delete',
-                cancelButtonText: 'Cancel',
-                type: 'warning'
-            }).then(() => {
-                db.collection('Articles').doc(id).delete()
-                .then(()=>{
-                    const ids = this.ingredientData.articles_ids.filter(article_id => {
-                        return article_id !== id
-                    })
-                    this.ingredientData.articles_ids = ids
-                    this.updateProfile(this.ingredientData)
-                    window.location.reload(true)
-                    this.$message({
-                        type: 'success',
-                        message: 'Delete completed'
-                    })
-                }).catch(error => {
-                    alert('Error! show error details on console.')
-                    console.log(error)
-                })
-            }).catch(() => {
-                this.$message({
-                    type: 'info',
-                    message: 'Delete canceled'
-                });
-            });
-        },
-        async deleteIngredientCnfirm() {
-            this.$confirm('一度消すと復元することができません。この素材を本当に消しますか？', 'Warning', {
-                confirmButtonText: 'Delete',
-                cancelButtonText: 'Cancel',
-                type: 'warning'
-            }).then(() => {
-                this.loadingToClass('Ingredients', '#ffffff80')
-                db.collection(`Ingredients`).doc(this.ingredientId).delete()
-                .then(()=>{
-                    var storageRef = firebase.storage().ref();
-                    let ref = storageRef.child(`ingredients/${this.ingredientId}.jpg`)
-                    ref.delete().then(()=> {
-                        if(this.ingredientData.articles_ids.length == 0) {
-                            this.loadingStop()
-                            this.$router.push('/')
-                            this.$message({
-                                type: 'success',
-                                message: 'Delete completed'
-                            })
-                        }
-                        this.ingredientData.articles_ids.forEach((articles_id, index) => {
-                            db.collection('Articles').doc(articles_id).delete()
-                            .then(()=>{
-                                if(index == this.ingredientData.articles_ids.length - 1){
-                                    this.loadingStop()
-                                    this.$router.push('/')
-                                    this.$message({
-                                        type: 'success',
-                                        message: 'Delete completed'
-                                    })
-                                }
-                            })
-                        })
-                    }).catch(error => {
-                        alert('Error! show error details on console.')
-                        console.log(error)
-                    })
-                }).catch(error => {
-                    alert('Error! show error details on console.')
-                    console.log(error)
-                })
-            }).catch(() => {
-                this.$message({
-                    type: 'info',
-                    message: 'Delete canceled'
-                });
-            });
-        },
-        goTop() {
-            this.$router.push('/')
-        },
-        showCreateModal(lang) {
-            this.modalType = lang
-            this.isActiveCreateModal = true
-        },
-        closeCreateModal() {
-            this.isActiveCreateModal = false
-        },
-        showEditModal(data) {
-            this.selectedArticle = data
-            this.isActiveEditModal = true
-        },
-        closeEditModal() {
-            this.isActiveEditModal = false
-        }
+  components: {
+    ArticleCard,
+    ArticleCreateModal,
+    ArticleEditModal,
+    IngredientProfile
+  },
+  mixins: [loading],
+  data () {
+    return {
+      isActiveCreateModal: false,
+      isActiveEditModal: false,
+      selectedArticle: {},
+      modalType: 'japanese',
+      isSuccess: false // Where firestore action is success
     }
+  },
+  async asyncData (context) {
+    // Get this ingredient data
+    let ingredient = {}
+    let ingredientId = 0
+    const id = context.query.id
+    await db.collection('Ingredients')
+      .doc(id)
+      .get()
+      .then((snapshot) => {
+        if (snapshot.exists) {
+          ingredient = snapshot.data()
+          ingredientId = snapshot.id
+
+          ingredient.seasons = ingredient.seasons.slice(0, 12)
+        }
+      })
+      .catch((error) => {
+        alert('This ingredient is nothing!')
+        console.log(error)
+        context.redirect('/')
+      })
+    // Get article List of this ingredient
+    const articleJpList = []
+    const articleEnList = []
+    const articleIds = ingredient.articles_ids
+    try {
+      await articleIds.forEach((articleId) => {
+        db.collection('Articles')
+          .doc(articleId)
+          .get()
+          .then((snapshot) => {
+            const article = snapshot.data()
+            article.id = articleId
+            article.content = []
+            db.collection(`Articles/${articleId}/sub_categories`)
+              .get()
+              .then((snapshotCategories) => {
+                snapshotCategories.forEach(function (doc) {
+                  const content = doc.data()
+                  content.id = doc.id
+                  article.content.push(content)
+                })
+              })
+            if (article.language == 'japanese') { articleJpList.push(article) } else { articleEnList.push(article) }
+          })
+          .catch((err) => {
+            console.log(err)
+            alert('Error! show error details on console.')
+          })
+      })
+    } catch (error) {
+      alert('This ingredient is nothing!')
+      console.log(error)
+      context.redirect('/')
+    }
+    return {
+      ingredientId,
+      ingredientData: ingredient,
+      articleJpList,
+      articleEnList
+    }
+  },
+  async fetch ({ store }) {
+    await store.dispatch('subCategories/getSubCategories')
+  },
+  methods: {
+    async updateProfile (profile) {
+      this.loadingToClass('IngredientProfile_UpdataButton', '#ffffff80')
+      await db.collection('Ingredients').doc(this.ingredientId).update(profile)
+        .then(() => {
+          this.ingredientData = profile
+          this.isSuccess = true
+          setTimeout(() => {
+            this.isSuccess = false
+          }, 3500)
+          this.loadingStop()
+        })
+        .catch((error) => {
+          console.log(error)
+        })
+    },
+    updateProfileWithImage (payload) {
+      const profile = payload.profile
+      const image = payload.image
+      const storageRef = firebase.storage().ref()
+      const ref = storageRef.child(`ingredients/${this.ingredientId}.jpg`)
+
+      ref.put(image)
+        .then((snapshot) => {
+          console.log('Uploaded a blob or file!')
+          ref.getDownloadURL().then((url) => {
+            profile.image_url = url
+            this.updateProfile(profile)
+          })
+        }).catch((error) => {
+          console.log(error)
+          alert('Error! show error details on console.')
+        })
+    },
+    updateArticle (target) {
+      const article = target.article
+      const deleteIds = target.deleteIds
+      this.loadingToClass('ArticleEditModal_SubmitButton', '#ffffff80')
+      db.collection('Articles').doc(article.id).update({
+        'title': article.title
+      }).then(() => {
+        article.sub_categories.forEach((category) => {
+          const categoryCopy = JSON.parse(JSON.stringify(category))
+          // update category
+          if (category.hasOwnProperty('id')) {
+            delete categoryCopy.id
+            db.collection(`Articles/${article.id}/sub_categories`).doc(category.id).update(categoryCopy)
+          } else {
+            db.collection(`Articles/${article.id}/sub_categories`).add(category)
+          }
+          // delete category
+          deleteIds.forEach((categoryId) => {
+            db.collection(`Articles/${article.id}/sub_categories`).doc(categoryId).delete()
+          })
+        })
+        this.isSuccess = true
+        setTimeout(() => {
+          this.isSuccess = false
+        }, 3500)
+        this.loadingStop()
+        this.closeCreateModal()
+        window.location.reload(true)
+      }).catch((error) => {
+        alert(error)
+        this.loadingStop()
+        console.log(error)
+        console.error('Error! show error details on console.')
+      })
+    },
+    createArticle (article) {
+      const articleProfile = article.profile
+      articleProfile.ingredient_id = this.ingredientId
+
+      this.loadingToClass('ArticleCreateModal_SubmitButton', '#ffffff80')
+
+      db.collection('Articles').add(articleProfile)
+        .then((docRef) => {
+          const articles_ids = this.ingredientData.articles_ids
+          articles_ids.push(docRef.id)
+
+          article.sub_categories.forEach((category) => {
+            db.collection(`Articles/${docRef.id}/sub_categories`).add(category)
+          })
+
+          db.collection('Ingredients').doc(this.ingredientId).update({
+            articles_ids
+          }).then(() => {
+            this.isSuccess = true
+            setTimeout(() => {
+              this.isSuccess = false
+            }, 3500)
+            this.loadingStop()
+            this.closeCreateModal()
+            window.location.reload(true)
+          })
+        })
+        .catch((error) => {
+          alert(error)
+          this.loadingStop()
+          console.error('Error adding document: ', error)
+        })
+    },
+    async deleteArticle (id) {
+      await this.$confirm('一度消すと復元することができません。この記事を本当に消しますか？', 'Warning', {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        db.collection(`Articles/${id}/sub_categories`)
+          .get()
+          .then((snapshotCategories) => {
+            if (snapshotCategories.empty) { return true }
+            snapshotCategories.forEach((doc) => {
+              db.collection(`Articles/${id}/sub_categories`).doc(doc.id).delete()
+            })
+            db.collection('Articles').doc(id).delete()
+              .then(() => {
+                const ids = this.ingredientData.articles_ids.filter((articleId) => {
+                  return articleId !== id
+                })
+                this.ingredientData.articles_ids = ids
+                this.updateProfile(this.ingredientData)
+                window.location.reload(true)
+                this.$message({
+                  type: 'success',
+                  message: 'Delete completed'
+                })
+              }).catch((error) => {
+                alert('Error! show error details on console.')
+                console.log(error)
+              })
+          })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: 'Delete canceled'
+        })
+      })
+    },
+    async deleteIngredientCnfirm () {
+      await this.$confirm('一度消すと復元することができません。この素材を本当に消しますか？', 'Warning', {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }).then(() => {
+        this.loadingToClass('Ingredients', '#ffffff80')
+        db.collection(`Ingredients`).doc(this.ingredientId).delete()
+          .then(() => {
+            const storageRef = firebase.storage().ref()
+            const ref = storageRef.child(`ingredients/${this.ingredientId}.jpg`)
+            ref.delete().then(() => {
+              if (this.ingredientData.articles_ids.length == 0) {
+                this.loadingStop()
+                this.$router.push('/')
+                this.$message({
+                  type: 'success',
+                  message: 'Delete completed'
+                })
+              }
+              this.ingredientData.articles_ids.forEach((articleId, index) => {
+                db.collection(`Articles/${articleId}/sub_categories`)
+                  .get()
+                  .then((snapshotCategories) => {
+                    if (snapshotCategories.empty) { return true }
+                    snapshotCategories.forEach((doc) => {
+                      db.collection(`Articles/${articleId}/sub_categories`).doc(doc.id).delete()
+                    })
+                    db.collection('Articles').doc(articleId).delete()
+                      .then(() => {
+                        if (index === this.ingredientData.articles_ids.length - 1) {
+                          this.loadingStop()
+                          this.$router.push('/')
+                          this.$message({
+                            type: 'success',
+                            message: 'Delete completed'
+                          })
+                        }
+                      })
+                  })
+              })
+            }).catch((error) => {
+              alert('Error! show error details on console.')
+              console.log(error)
+            })
+          }).catch((error) => {
+            alert('Error! show error details on console.')
+            console.log(error)
+          })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: 'Delete canceled'
+        })
+      })
+    },
+    goTop () {
+      this.$router.push('/')
+    },
+    showCreateModal (lang) {
+      this.modalType = lang
+      this.isActiveCreateModal = true
+    },
+    closeCreateModal () {
+      this.isActiveCreateModal = false
+    },
+    showEditModal (data) {
+      this.selectedArticle = data
+      this.isActiveEditModal = true
+    },
+    closeEditModal () {
+      this.isActiveEditModal = false
+    }
+  }
 }
 </script>
 

@@ -30,7 +30,6 @@
                 @close="closeCreateModal")
 </template>
 
-
 <script>
 import IngredientCreateModal from '~/components/IngredientCreateModal'
 
@@ -40,111 +39,111 @@ import prefectures from '~/assets/prefectures.js'
 import seasons from '~/assets/seasons.js'
 
 export default {
-    mixins: [loading, prefectures, seasons],
-    async fetch({store}) {
-        await store.dispatch('subCategories/getSubCategories')
-    },
-    data() {
-        return {
-            season: 0,
-            location: 'tokyo',
-            ingredients: [], // Ingredients from firestore sorted by loacation
-            filteredIngredients: [], //　Ingredients Filtered by js because firestore cannot filter by season
-            isActiveModal: false,
-            selectedIngredient: {}
-        }
-    },
-    components: {
-        IngredientCreateModal
-    },
-    mounted() {
-        this.getIngredients()
-    },
-    watch: {
-        location() {
-            this.getIngredients()
-        },
-        season() {
-            this.sortIngredients()
-        }
-    },
-    methods: {
-        async getIngredients() {
-            this.loadingToClass('Top_Body')
-            // Get ingredients data from firestore
-            let ingredients = []
-            await db.collection('Ingredients')
-            .where('local_location_name', '==', this.location)
-            .get().then(querySnapshot => {
-                querySnapshot.forEach((doc) => {
-                    const ingredient = doc.data()
-                    ingredient['id'] = doc.id
-                    if(ingredient.seasons[this.season]) {
-                        ingredients.push(ingredient)
-                    }
-                });
-            }).catch(error => {
-                console.log(error)
-                alert('Error! show error details on console.')
-            })
-            this.ingredients = ingredients
-            this.filteredIngredients = ingredients.filter(ingredient => {
-                return ingredient.seasons[this.season] == true
-            })
-            this.loadingStop()
-        },
-        async createIngredient(ingredient) {
-            this.loadingToClass('IngredientCreateModal_SubmitButtonContainer', '#ffffff80')
-            const image = ingredient.image_url
-            ingredient.image_url = ''
-            this.selectedIngredient = ingredient
-            await db.collection("Ingredients").add(ingredient)
-            .then((docRef) => {
-                this.setIngredientImage(image, docRef.id)
-            })
-            .catch(error => {
-                alert('Error! show error details on console.')
-                console.log(error)
-            })
-        },
-        async setIngredientImage(image, id) {
-            var storageRef = firebase.storage().ref();
-            let ref = storageRef.child(`ingredients/${id}.jpg`)
-            await ref.put(image)
-            .then((snapshot)=> {
-                console.log('Uploaded a blob or file!');
-                ref.getDownloadURL().then((url) => {
-                    this.selectedIngredient.image_url = url
-                    this.updateProfile(this.selectedIngredient, id)
-                });
-            }).catch(error => {
-                console.log(error)
-                alert('Error! show error details on console.')
-            })
-        },
-        async updateProfile(profile, id) {
-            await db.collection("Ingredients").doc(id).update(profile)
-            .then(()=>{
-                this.$router.push(`/ingredients?id=${id}`)
-                this.loadingStop()
-            })
-            .catch(error => {
-                alert('Error! show error details on console.')
-                console.log(error)
-            })
-        },
-        showCreateModal() {
-            this.isActiveModal = true
-        },
-        closeCreateModal() {
-            this.isActiveModal = false
-        },
-        sortIngredients() {
-            this.filteredIngredients = this.ingredients.filter(ingredient => {
-                return ingredient.seasons[this.season] == true
-            })
-        },
+  components: {
+    IngredientCreateModal
+  },
+  mixins: [loading, prefectures, seasons],
+  data () {
+    return {
+      season: 0,
+      location: 'tokyo',
+      ingredients: [], // Ingredients from firestore sorted by loacation
+      filteredIngredients: [], //　Ingredients Filtered by js because firestore cannot filter by season
+      isActiveModal: false,
+      selectedIngredient: {}
     }
+  },
+  watch: {
+    location () {
+      this.getIngredients()
+    },
+    season () {
+      this.sortIngredients()
+    }
+  },
+  async fetch ({ store }) {
+    await store.dispatch('subCategories/getSubCategories')
+  },
+  mounted () {
+    this.getIngredients()
+  },
+  methods: {
+    async getIngredients () {
+      this.loadingToClass('Top_Body')
+      // Get ingredients data from firestore
+      const ingredients = []
+      await db.collection('Ingredients')
+        .where('local_location_name', '==', this.location)
+        .get().then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const ingredient = doc.data()
+            ingredient.id = doc.id
+            if (ingredient.seasons[this.season]) {
+              ingredients.push(ingredient)
+            }
+          })
+        }).catch((error) => {
+          console.log(error)
+          alert('Error! show error details on console.')
+        })
+      this.ingredients = ingredients
+      this.filteredIngredients = ingredients.filter((ingredient) => {
+        return ingredient.seasons[this.season] == true
+      })
+      this.loadingStop()
+    },
+    async createIngredient (ingredient) {
+      this.loadingToClass('IngredientCreateModal_SubmitButtonContainer', '#ffffff80')
+      const image = ingredient.image_url
+      ingredient.image_url = ''
+      this.selectedIngredient = ingredient
+      await db.collection('Ingredients').add(ingredient)
+        .then((docRef) => {
+          this.setIngredientImage(image, docRef.id)
+        })
+        .catch((error) => {
+          alert('Error! show error details on console.')
+          console.log(error)
+        })
+    },
+    async setIngredientImage (image, id) {
+      const storageRef = firebase.storage().ref()
+      const ref = storageRef.child(`ingredients/${id}.jpg`)
+      await ref.put(image)
+        .then((snapshot) => {
+          console.log('Uploaded a blob or file!')
+          ref.getDownloadURL().then((url) => {
+            this.selectedIngredient.image_url = url
+            this.updateProfile(this.selectedIngredient, id)
+          })
+        }).catch((error) => {
+          console.log(error)
+          alert('Error! show error details on console.')
+        })
+    },
+    async updateProfile (profile, id) {
+      await db.collection('Ingredients').doc(id).update(profile)
+        .then(() => {
+          this.$router.push(`/ingredients?id=${id}`)
+          this.loadingStop()
+        })
+        .catch((error) => {
+          alert('Error! show error details on console.')
+          console.log(error)
+        })
+    },
+    showCreateModal () {
+      this.isActiveModal = true
+    },
+    closeCreateModal () {
+      this.isActiveModal = false
+    },
+    sortIngredients () {
+      this.filteredIngredients = this.ingredients.filter((ingredient) => {
+        return ingredient.seasons[this.season] == true
+      })
+    }
+  }
 }
 </script>
 

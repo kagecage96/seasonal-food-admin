@@ -8,40 +8,39 @@
 
 <script>
 export default {
-    data() {
-        return {
-            newImage: ''
-        }
-    },
-    props: {
-        imageUrl: {
-            required: true
-        }
-    },
-    watch: {
-        imageUrl() {
-            this.newImage = this.imageUrl
-        }
-    },
-    methods: {
-        onFileChange(e) {
-            let files = e.target.files || e.dataTransfer.files;
-            this.$emit('change', files[0])
-            this.createImage(files[0]);
-        },
-        // アップロードした画像を表示
-        createImage(file) {
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                this.newImage =e.target.result
-                // this.$emit('input', )
-            };
-            reader.readAsDataURL(file);
-        },
+  props: {
+    imageUrl: {
+      required: true
     }
+  },
+  data () {
+    return {
+      newImage: ''
+    }
+  },
+  watch: {
+    imageUrl () {
+      this.newImage = this.imageUrl
+    }
+  },
+  methods: {
+    onFileChange (e) {
+      const files = e.target.files || e.dataTransfer.files
+      this.$emit('change', files[0])
+      this.createImage(files[0])
+    },
+    // アップロードした画像を表示
+    createImage (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        this.newImage = e.target.result
+        // this.$emit('input', )
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 }
 </script>
-
 
 <style lang="scss" scoped>
 .IngredientImage {

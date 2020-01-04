@@ -5,9 +5,9 @@ const app = express()
 
 const USERNAME = 'UZRA'
 const PASSWORD = 'Qt1LRplNSQ'
-app.all('/*', basicAuth(function(user, password) {
-  return user === USERNAME && password === PASSWORD;
-}));
+app.all('/*', basicAuth(function (user, password) {
+  return user === USERNAME && password === PASSWORD
+}))
 
 app.use(express.static(__dirname + '/dist/'))
 
