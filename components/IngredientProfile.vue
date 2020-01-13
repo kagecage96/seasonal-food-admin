@@ -21,7 +21,7 @@
                                 :checked="season")
             div.IngredientProfile_FormItem
                 div.IngredientProfile_FormLabel Location
-                el-select(v-model="newIngredient.local_location_name" class="Top_SelectBox")
+                el-select(v-model="newIngredient.locations" multiple class="Top_SelectBox")
                     el-option(
                         v-for="(value, key) in prefectures"
                         :key="key"

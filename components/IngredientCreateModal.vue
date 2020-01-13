@@ -27,8 +27,8 @@
                                 :label="`${String(index + 1)}月`"
                                 :checked="season")
             div(class="IngredientCreateModal_FormItemContainer")
-                div.IngredientCreateModal_FormItemLabel local_location_name
-                el-select(v-model="ingredient.local_location_name" class="Top_SelectBox")
+                div.IngredientCreateModal_FormItemLabel locations
+                el-select(v-model="ingredient.locations" multiple class="Top_SelectBox")
                     el-option(
                         v-for="(value, key) in prefectures"
                         :key="key"
@@ -63,7 +63,7 @@ export default {
         articles_ids: [],
         image_url: '',
         japanese_name: '',
-        local_location_name: '',
+        locations: '',
         name: '',
         seasons,
         sub_category_id: '',
@@ -116,7 +116,7 @@ export default {
         articles_ids: [],
         image_url: '',
         japanese_name: '',
-        local_location_name: '',
+        locations: '',
         name: '',
         seasons,
         sub_category: '',

@@ -73,7 +73,7 @@ export default {
       // Get ingredients data from firestore
       const ingredients = []
       await db.collection('Ingredients')
-        .where('local_location_name', '==', this.location)
+        .where('locations', 'array-contains', this.location)
         .get().then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
             const ingredient = doc.data()
