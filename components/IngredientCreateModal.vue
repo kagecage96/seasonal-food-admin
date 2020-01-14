@@ -84,7 +84,7 @@ export default {
   watch: {
     'ingredient.sub_category' (val) {
       const subCategory = this.subCategories.find(subCategory => subCategory.name == val)
-      this.ingredient.sub_category_name_jp = subCategory.jp_name
+      this.ingredient.sub_category_name_en = subCategory.english_name
       this.ingredient.sub_category_id = subCategory.id
     }
   },
