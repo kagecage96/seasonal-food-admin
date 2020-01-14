@@ -87,7 +87,6 @@ export default {
     'newIngredient.sub_category' (val) {
       const subCategory = this.subCategories.find(subCategory => subCategory.name == val)
       if (subCategory) {
-        console.log(subCategory)
         this.newIngredient.sub_category_name_en = subCategory.english_name
         this.newIngredient.sub_category_id = subCategory.id
       }
