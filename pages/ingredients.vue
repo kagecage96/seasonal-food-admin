@@ -14,7 +14,7 @@
                 ingredient-profile(:ingredient="ingredientData" @update="updateProfile" @updateWithImage="updateProfileWithImage")
             div.Ingredients_ArticleWrapper
                 div.Ingredients_ArticleLabel
-                    span.Ingredients_ArticleLabelText Article_japanese
+                    span.Ingredients_ArticleLabelText Japanese Article
                     el-button(type="primary" style="height: 40px;" @click="showCreateModal('japanese')") Create
                 div.Ingredients_ArticleContainer
                     div(v-if="articleJpList.length == 0") Nothing
@@ -27,7 +27,7 @@
                                 class="Ingredients_ArticleCard")
             div.Ingredients_ArticleWrapper
                 div.Ingredients_ArticleLabel
-                    span.Ingredients_ArticleLabelText Article_english
+                    span.Ingredients_ArticleLabelText English Article
                     el-button(type="primary" style="height: 40px;" @click="showCreateModal('english')") Create
                 div.Ingredients_ArticleContainer
                     div(v-if="articleEnList.length == 0") Nothing

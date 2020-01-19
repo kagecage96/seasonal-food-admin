@@ -4,13 +4,10 @@
             ingredient-image(:imageUrl="newIngredient.image_url" @change="updateImage")
         div.IngredientProfile_InfoContainer
             div.IngredientProfile_FormItem
-                div.IngredientProfile_FormLabel name
-                el-input(v-model="newIngredient.name")
-            div.IngredientProfile_FormItem
-                div.IngredientProfile_FormLabel Name_jp
+                div.IngredientProfile_FormLabel Japanese Name
                 el-input(v-model="newIngredient.japanese_name")
             div.IngredientProfile_FormItem
-                div.IngredientProfile_FormLabel Name_en
+                div.IngredientProfile_FormLabel English Name
                 el-input(v-model="newIngredient.english_name")
             div.IngredientProfile_FormItem
                 div.IngredientProfile_FormLabel Seasons
@@ -29,7 +26,7 @@
                         :value="value"
                     ) {{value}}
             div.IngredientProfile_FormItem
-                div.IngredientProfile_FormLabel sub_category
+                div.IngredientProfile_FormLabel Category
                 el-select(v-model="newIngredient.sub_category_id" class="Top_SelectBox")
                     el-option(
                         v-for="(value, key) in subCategories"
