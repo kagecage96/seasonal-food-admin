@@ -12,12 +12,12 @@
                 el-input(v-model="ingredient[key]")
             div(class="IngredientCreateModal_FormItemContainer")
                 div.IngredientCreateModal_FormItemLabel sub_category
-                el-select(v-model="ingredient.sub_category" class="Top_SelectBox")
+                el-select(v-model="ingredient.sub_category_id" class="Top_SelectBox")
                     el-option(
                         v-for="(value, key) in subCategories"
                         :key="key"
                         :label="value.name"
-                        :value="value.name"
+                        :value="value.id"
                     ) {{value.name}}
             div(class="IngredientCreateModal_FormItemContainer")
                 div.IngredientCreateModal_FormItemLabel seasons
@@ -67,7 +67,7 @@ export default {
         name: '',
         seasons,
         sub_category_id: '',
-        sub_category: ''
+        sub_category_name_jp: ''
       },
       sub_categories: [],
       selectedSeasons: [],
@@ -82,9 +82,9 @@ export default {
     }
   },
   watch: {
-    'ingredient.sub_category' (val) {
-      const subCategory = this.subCategories.find(subCategory => subCategory.name == val)
-      this.ingredient.sub_category_name_en = subCategory.english_name
+    'ingredient.sub_category_id' (val) {
+      const subCategory = this.subCategories.find(subCategory => subCategory.id == val)
+      this.ingredient.sub_category_name_jp = subCategory.japanese_name
       this.ingredient.sub_category_id = subCategory.id
     }
   },

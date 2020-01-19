@@ -30,12 +30,12 @@
                     ) {{value}}
             div.IngredientProfile_FormItem
                 div.IngredientProfile_FormLabel sub_category
-                el-select(v-model="newIngredient.sub_category" class="Top_SelectBox")
+                el-select(v-model="newIngredient.sub_category_id" class="Top_SelectBox")
                     el-option(
                         v-for="(value, key) in subCategories"
                         :key="key"
                         :label="value.name"
-                        :value="value.name"
+                        :value="value.id"
                     ) {{value.name}}
             div.IngredientProfile_UpdataButton
                 el-button(@click="update" type="danger" :disabled="!isUpdated") Update
@@ -84,10 +84,10 @@ export default {
       },
       deep: true
     },
-    'newIngredient.sub_category' (val) {
-      const subCategory = this.subCategories.find(subCategory => subCategory.name == val)
+    'newIngredient.sub_category_id' (val) {
+      const subCategory = this.subCategories.find(subCategory => subCategory.id == val)
       if (subCategory) {
-        this.newIngredient.sub_category_name_en = subCategory.english_name
+        this.newIngredient.sub_category_name_jp = subCategory.japanese_name
         this.newIngredient.sub_category_id = subCategory.id
       }
     }
