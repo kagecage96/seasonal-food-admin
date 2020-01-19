@@ -95,32 +95,35 @@ export default {
     // Get article List of this ingredient
     const articleJpList = []
     const articleEnList = []
-    const articleIds = ingredient.articles_ids
     try {
-      await articleIds.forEach((articleId) => {
-        db.collection('Articles')
-          .doc(articleId)
-          .get()
-          .then((snapshot) => {
-            const article = snapshot.data()
-            article.id = articleId
+      await db.collection('Articles')
+        .where('ingredient_id', '==', ingredientId)
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((articleDoc) => {
+            const article = articleDoc.data()
+            article.id = articleDoc.id
             article.content = []
-            db.collection(`Articles/${articleId}/sub_categories`)
+            db.collection(`Articles/${article.id}/sub_categories`)
               .get()
               .then((snapshotCategories) => {
-                snapshotCategories.forEach(function (doc) {
-                  const content = doc.data()
-                  content.id = doc.id
+                snapshotCategories.forEach(function (subCategoryDoc) {
+                  const content = subCategoryDoc.data()
+                  content.id = subCategoryDoc.id
                   article.content.push(content)
                 })
               })
-            if (article.language == 'japanese') { articleJpList.push(article) } else { articleEnList.push(article) }
+            if (article.language == 'japanese') {
+              articleJpList.push(article)
+            } else {
+              articleEnList.push(article)
+            }
           })
-          .catch((err) => {
-            console.log(err)
-            alert('Error! show error details on console.')
-          })
-      })
+        })
+        .catch((err) => {
+          console.log(err)
+          alert('Error! show error details on console.')
+        })
     } catch (error) {
       alert('This ingredient is nothing!')
       console.log(error)
