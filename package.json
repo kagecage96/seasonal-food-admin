@@ -23,7 +23,7 @@
     "@nuxtjs/style-resources": "^1.0.0",
     "element-ui": "^2.13.0",
     "firebase": "^7.5.0",
-    "node-sass": "^4.13.0",
+    "node-sass": "^4.13.1",
     "nuxt": "latast",
     "pug": "^2.0.4",
     "pug-plain-loader": "^1.0.0",
